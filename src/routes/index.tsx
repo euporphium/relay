@@ -1,39 +1,55 @@
 import { createFileRoute } from '@tanstack/react-router';
-import logo from '../logo.svg';
+import type z from 'zod';
+import { useAppForm } from '@/components/form/hooks.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import { FieldGroup } from '@/components/ui/field.tsx';
+import { routineSchema } from '@/schemas/routine.ts';
 
 export const Route = createFileRoute('/')({
   component: App,
 });
 
+type FormData = z.infer<typeof routineSchema>;
+
 function App() {
+  const form = useAppForm({
+    defaultValues: {
+      name: '',
+      description: '',
+    } satisfies FormData,
+    validators: {
+      onSubmit: routineSchema,
+    },
+    onSubmit: async ({ value }) => {
+      console.log('Form submitted with values:', value);
+    },
+  });
+
   return (
-    <div className="text-center">
-      <header className="min-h-screen flex flex-col items-center justify-center bg-[#282c34] text-white text-[calc(10px+2vmin)]">
-        <img
-          src={logo}
-          className="h-[40vmin] pointer-events-none animate-[spin_20s_linear_infinite]"
-          alt="logo"
-        />
-        <p>
-          Edit <code>src/routes/index.tsx</code> and save to reload.
-        </p>
-        <a
-          className="text-[#61dafb] hover:underline"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <a
-          className="text-[#61dafb] hover:underline"
-          href="https://tanstack.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn TanStack
-        </a>
-      </header>
+    <div className="p-4">
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          await form.handleSubmit();
+        }}
+      >
+        <FieldGroup>
+          <form.AppField name="name">
+            {(field) => <field.Input label="Name" />}
+          </form.AppField>
+
+          <form.AppField name="description">
+            {(field) => (
+              <field.Textarea
+                label="Description"
+                description="Be as specific as possible"
+              />
+            )}
+          </form.AppField>
+
+          <Button>Create</Button>
+        </FieldGroup>
+      </form>
     </div>
   );
 }

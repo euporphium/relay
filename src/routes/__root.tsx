@@ -1,11 +1,11 @@
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { createRootRoute, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import { UiModeProvider } from '@/components/ui-mode-provider.tsx';
+import { UIModeProvider } from '@/components/UIModeProvider.tsx';
 
 export const Route = createRootRoute({
   component: () => (
-    <UiModeProvider>
+    <UIModeProvider>
       <Outlet />
       <TanStackDevtools
         config={{
@@ -18,6 +18,6 @@ export const Route = createRootRoute({
           },
         ]}
       />
-    </UiModeProvider>
+    </UIModeProvider>
   ),
 });
