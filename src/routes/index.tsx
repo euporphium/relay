@@ -9,19 +9,29 @@ export const Route = createFileRoute('/')({
   component: App,
 });
 
-type FormData = z.infer<typeof routineSchema>;
-
 function App() {
+  const defaultValues: z.input<typeof routineSchema> = {
+    name: '',
+    description: '',
+    date: new Date(),
+  };
+
   const form = useAppForm({
-    defaultValues: {
-      name: '',
-      description: '',
-    } satisfies FormData,
+    defaultValues,
     validators: {
       onSubmit: routineSchema,
     },
-    onSubmit: async ({ value }) => {
-      console.log('Form submitted with values:', value);
+    onSubmit: ({ value }) => {
+      const result = routineSchema.safeParse(value);
+
+      if (!result.success) {
+        // This should never happen if the form is wired correctly
+        console.error(result.error);
+        return;
+      }
+
+      const routine = result.data;
+      console.log('Form submitted with values:', JSON.stringify(routine));
     },
   });
 
@@ -45,6 +55,10 @@ function App() {
                 description="Be as specific as possible"
               />
             )}
+          </form.AppField>
+
+          <form.AppField name="date">
+            {(field) => <field.DatePicker label="Date" />}
           </form.AppField>
 
           <Button>Create</Button>
