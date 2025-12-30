@@ -19,4 +19,5 @@ export const routineSchema = routineInputSchema.extend({
   id: z.string(),
   date: z.iso.date(),
   createdAt: z.iso.datetime(),
+  completedAt: z.iso.datetime().nullable().optional().default(null),
 });

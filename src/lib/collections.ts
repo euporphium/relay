@@ -4,7 +4,7 @@ import {
 } from '@tanstack/react-db';
 import { routineSchema } from '@/schemas/routine';
 
-export const routinesCollection = createCollection(
+export const routineCollection = createCollection(
   localStorageCollectionOptions({
     id: 'routines',
     storageKey: 'app-routines',

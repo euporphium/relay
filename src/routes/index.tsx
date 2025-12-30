@@ -1,79 +1,92 @@
+import { isNull, lte, not, useLiveQuery } from '@tanstack/react-db';
 import { createFileRoute } from '@tanstack/react-router';
-import type z from 'zod';
-import { useAppForm } from '@/components/form/hooks';
+import { addDays, format, subDays } from 'date-fns';
+import { useState } from 'react';
+import { CreateRoutineForm } from '@/components/CreateRoutineForm';
 import { Button } from '@/components/ui/button';
-import { FieldGroup } from '@/components/ui/field';
-import { routinesCollection } from '@/lib/collections';
-import { routineInputSchema, routineSchema } from '@/schemas/routine';
+import { routineCollection } from '@/lib/collections';
 
 export const Route = createFileRoute('/')({
   component: App,
 });
 
 function App() {
-  const defaultValues: z.input<typeof routineInputSchema> = {
-    name: '',
-    description: '',
-    date: new Date(),
-  };
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  const form = useAppForm({
-    defaultValues,
-    validators: {
-      onSubmit: routineInputSchema,
-    },
-    onSubmit: ({ value }) => {
-      const inputResult = routineInputSchema.safeParse(value);
+  const { data: activeRoutines } = useLiveQuery(
+    (q) =>
+      q
+        .from({ routine: routineCollection })
+        .where(({ routine }) =>
+          lte(routine.date, format(currentDate, 'yyyy-MM-dd')),
+        )
+        .where(({ routine }) => isNull(routine.completedAt))
+        .orderBy(({ routine }) => routine.date),
+    [currentDate],
+  );
 
-      if (!inputResult.success) {
-        console.error(inputResult.error);
-        return;
-      }
+  const { data: completedRoutines } = useLiveQuery(
+    (q) =>
+      q
+        .from({ routine: routineCollection })
+        .where(({ routine }) => not(isNull(routine.completedAt)))
+        .orderBy(({ routine }) => routine.date),
+    // limit
+    [currentDate],
+  );
 
-      const persistedResult = routineSchema.safeParse({
-        id: crypto.randomUUID(),
-        ...inputResult.data,
-        createdAt: new Date().toISOString(),
-      });
-
-      if (!persistedResult.success) {
-        console.error(persistedResult.error);
-        return;
-      }
-
-      routinesCollection.insert(persistedResult.data);
-    },
-  });
+  function completeRoutine(id: string) {
+    routineCollection.update(id, (routine) => {
+      routine.completedAt = new Date().toISOString();
+    });
+  }
 
   return (
     <div className="p-4">
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          await form.handleSubmit();
-        }}
-      >
-        <FieldGroup>
-          <form.AppField name="name">
-            {(field) => <field.Input label="Name" />}
-          </form.AppField>
+      <div className="flex items-center justify-between mb-4">
+        <Button onClick={() => setCurrentDate((d) => subDays(d, 1))}>
+          &lt;
+        </Button>
+        {format(currentDate, 'yyyy-MM-dd')}
+        <Button onClick={() => setCurrentDate((d) => addDays(d, 1))}>
+          &gt;
+        </Button>
+      </div>
 
-          <form.AppField name="description">
-            {(field) => (
-              <field.Textarea
-                label="Description"
-                description="Be as specific as possible"
-              />
-            )}
-          </form.AppField>
+      <CreateRoutineForm />
 
-          <form.AppField name="date">
-            {(field) => <field.DatePicker label="Date" />}
-          </form.AppField>
+      {activeRoutines.length > 0 && (
+        <section className="mt-12 border p-4 rounded">
+          <h2 className="text-2xl mb-4">Active Routines</h2>
+          <ul>
+            {activeRoutines.map((routine) => (
+              <li key={routine.id} className="grid grid-cols-4 gap-4">
+                <span>{routine.name}</span>
+                <span>{routine.description}</span>
+                <span>Active since {routine.date}</span>
+                <Button onClick={() => completeRoutine(routine.id)}>
+                  Complete
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-          <Button>Create</Button>
-        </FieldGroup>
-      </form>
+      {completedRoutines.length > 0 && (
+        <section className="mt-12 border p-4 rounded">
+          <h2 className="text-2xl mb-4">Completed Routines</h2>
+          <ul>
+            {completedRoutines.map((routine) => (
+              <li key={routine.id} className="grid grid-cols-4 gap-4">
+                <span>{routine.name}</span>
+                <span>{routine.description}</span>
+                <span>Completed on {routine.completedAt}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }
