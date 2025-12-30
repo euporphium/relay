@@ -1,7 +1,7 @@
 import { createFormHook, createFormHookContexts } from '@tanstack/react-form';
-import { FormDatePicker } from '@/components/form/FormDatePicker.tsx';
-import { FormInput } from '@/components/form/FormInput.tsx';
-import { FormTextarea } from '@/components/form/FormTextarea.tsx';
+import { FormDatePicker } from '@/components/form/FormDatePicker';
+import { FormInput } from '@/components/form/FormInput';
+import { FormTextarea } from '@/components/form/FormTextarea';
 
 const { fieldContext, formContext, useFieldContext, useFormContext } =
   createFormHookContexts();

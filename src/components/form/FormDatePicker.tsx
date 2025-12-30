@@ -1,15 +1,12 @@
 import { CalendarIcon } from '@phosphor-icons/react';
 import { format } from 'date-fns';
 import { useState } from 'react';
-import {
-  FormBase,
-  type FormControlProps,
-} from '@/components/form/FormBase.tsx';
+import { FormBase, type FormControlProps } from '@/components/form/FormBase';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover.tsx';
+} from '@/components/ui/popover';
 import { Button } from '../ui/button';
 import { Calendar } from '../ui/calendar';
 import { useFieldContext } from './hooks';

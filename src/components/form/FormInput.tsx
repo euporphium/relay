@@ -1,8 +1,5 @@
-import {
-  FormBase,
-  type FormControlProps,
-} from '@/components/form/FormBase.tsx';
-import { Input } from '@/components/ui/input.tsx';
+import { FormBase, type FormControlProps } from '@/components/form/FormBase';
+import { Input } from '@/components/ui/input';
 import { useFieldContext } from './hooks';
 
 export function FormInput(props: FormControlProps) {

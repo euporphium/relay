@@ -1,16 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router';
 import type z from 'zod';
-import { useAppForm } from '@/components/form/hooks.tsx';
-import { Button } from '@/components/ui/button.tsx';
-import { FieldGroup } from '@/components/ui/field.tsx';
-import { routineSchema } from '@/schemas/routine.ts';
+import { useAppForm } from '@/components/form/hooks';
+import { Button } from '@/components/ui/button';
+import { FieldGroup } from '@/components/ui/field';
+import { routinesCollection } from '@/lib/collections';
+import { routineInputSchema, routineSchema } from '@/schemas/routine';
 
 export const Route = createFileRoute('/')({
   component: App,
 });
 
 function App() {
-  const defaultValues: z.input<typeof routineSchema> = {
+  const defaultValues: z.input<typeof routineInputSchema> = {
     name: '',
     description: '',
     date: new Date(),
@@ -19,19 +20,28 @@ function App() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onSubmit: routineSchema,
+      onSubmit: routineInputSchema,
     },
     onSubmit: ({ value }) => {
-      const result = routineSchema.safeParse(value);
+      const inputResult = routineInputSchema.safeParse(value);
 
-      if (!result.success) {
-        // This should never happen if the form is wired correctly
-        console.error(result.error);
+      if (!inputResult.success) {
+        console.error(inputResult.error);
         return;
       }
 
-      const routine = result.data;
-      console.log('Form submitted with values:', JSON.stringify(routine));
+      const persistedResult = routineSchema.safeParse({
+        id: crypto.randomUUID(),
+        ...inputResult.data,
+        createdAt: new Date().toISOString(),
+      });
+
+      if (!persistedResult.success) {
+        console.error(persistedResult.error);
+        return;
+      }
+
+      routinesCollection.insert(persistedResult.data);
     },
   });
 

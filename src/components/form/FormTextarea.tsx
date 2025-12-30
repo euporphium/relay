@@ -1,8 +1,5 @@
-import {
-  FormBase,
-  type FormControlProps,
-} from '@/components/form/FormBase.tsx';
-import { Textarea } from '@/components/ui/textarea.tsx';
+import { FormBase, type FormControlProps } from '@/components/form/FormBase';
+import { Textarea } from '@/components/ui/textarea';
 import { useFieldContext } from './hooks';
 
 export function FormTextarea(props: FormControlProps) {

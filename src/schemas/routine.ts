@@ -1,7 +1,8 @@
+import { format } from 'date-fns';
 import z from 'zod';
-import { startOfToday } from '@/schemas/utils.ts';
+import { startOfToday } from '@/lib/utils';
 
-export const routineSchema = z.object({
+export const routineInputSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
   description: z
     .string()
@@ -11,5 +12,11 @@ export const routineSchema = z.object({
   date: z
     .date('Date is required')
     .min(startOfToday(), 'Date must be today or later')
-    .transform((d) => d.toISOString().slice(0, 10)),
+    .transform((d) => format(d, 'yyyy-MM-dd')),
+});
+
+export const routineSchema = routineInputSchema.extend({
+  id: z.string(),
+  date: z.iso.date(),
+  createdAt: z.iso.datetime(),
 });

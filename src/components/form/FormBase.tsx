@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
-import { useFieldContext } from '@/components/form/hooks.tsx';
+import { useFieldContext } from '@/components/form/hooks';
 import {
   Field,
   FieldContent,
   FieldDescription,
   FieldError,
   FieldLabel,
-} from '@/components/ui/field.tsx';
+} from '@/components/ui/field';
 
 export type FormControlProps = {
   label: string;
