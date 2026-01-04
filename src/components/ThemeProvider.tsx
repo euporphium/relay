@@ -1,7 +1,7 @@
 import { ScriptOnce } from '@tanstack/react-router';
 import { createClientOnlyFn, createIsomorphicFn } from '@tanstack/react-start';
 import { createContext, type ReactNode, use, useEffect, useState } from 'react';
-import * as z from 'zod';
+import { z } from 'zod';
 
 const themeEnum = z.enum(['light', 'dark', 'system']);
 

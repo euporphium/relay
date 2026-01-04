@@ -1,4 +1,4 @@
-import type z from 'zod';
+import type * as z from 'zod';
 import { useAppForm } from '@/components/form/hooks';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';

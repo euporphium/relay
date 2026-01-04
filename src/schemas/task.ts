@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import z from 'zod';
+import { z } from 'zod';
 import { startOfToday } from '@/lib/utils';
 
 export const taskInputSchema = z.object({
