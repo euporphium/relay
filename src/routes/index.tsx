@@ -2,10 +2,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { addDays, format, subDays } from 'date-fns';
 import { useState } from 'react';
-import { CreateRoutineForm } from '@/components/CreateRoutineForm';
+import { CreateTaskForm } from '@/components/CreateTaskForm';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
-// import { routineCollection } from '@/lib/collections';
+// import { taskCollection } from '@/lib/collections';
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -14,31 +14,31 @@ export const Route = createFileRoute('/')({
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // const { data: activeRoutines } = useLiveQuery(
+  // const { data: activeTasks } = useLiveQuery(
   //   (q) =>
   //     q
-  //       .from({ routine: routineCollection })
-  //       .where(({ routine }) =>
-  //         lte(routine.date, format(currentDate, 'yyyy-MM-dd')),
+  //       .from({ task: taskCollection })
+  //       .where(({ task }) =>
+  //         lte(task.date, format(currentDate, 'yyyy-MM-dd')),
   //       )
-  //       .where(({ routine }) => isNull(routine.completedAt))
-  //       .orderBy(({ routine }) => routine.date),
+  //       .where(({ task }) => isNull(task.completedAt))
+  //       .orderBy(({ task }) => task.date),
   //   [currentDate],
   // );
   //
-  // const { data: completedRoutines } = useLiveQuery(
+  // const { data: completedTasks } = useLiveQuery(
   //   (q) =>
   //     q
-  //       .from({ routine: routineCollection })
-  //       .where(({ routine }) => not(isNull(routine.completedAt)))
-  //       .orderBy(({ routine }) => routine.date),
+  //       .from({ task: taskCollection })
+  //       .where(({ task }) => not(isNull(task.completedAt)))
+  //       .orderBy(({ task }) => task.date),
   //   // limit
   //   [currentDate],
   // );
 
-  // function completeRoutine(id: string) {
-  //   routineCollection.update(id, (routine) => {
-  //     routine.completedAt = new Date().toISOString();
+  // function completeTask(id: string) {
+  //   taskCollection.update(id, (task) => {
+  //     task.completedAt = new Date().toISOString();
   //   });
   // }
 
@@ -55,18 +55,18 @@ function App() {
         </Button>
       </div>
 
-      <CreateRoutineForm />
+      <CreateTaskForm />
 
-      {/*{activeRoutines.length > 0 && (*/}
+      {/*{activeTasks.length > 0 && (*/}
       {/*  <section className="mt-12 border p-4 rounded">*/}
-      {/*    <h2 className="text-2xl mb-4">Active Routines</h2>*/}
+      {/*    <h2 className="text-2xl mb-4">Active Tasks</h2>*/}
       {/*    <ul>*/}
-      {/*      {activeRoutines.map((routine) => (*/}
-      {/*        <li key={routine.id} className="grid grid-cols-4 gap-4">*/}
-      {/*          <span>{routine.name}</span>*/}
-      {/*          <span>{routine.description}</span>*/}
-      {/*          <span>Active since {routine.date}</span>*/}
-      {/*          <Button onClick={() => completeRoutine(routine.id)}>*/}
+      {/*      {activeTasks.map((task) => (*/}
+      {/*        <li key={task.id} className="grid grid-cols-4 gap-4">*/}
+      {/*          <span>{task.name}</span>*/}
+      {/*          <span>{task.description}</span>*/}
+      {/*          <span>Active since {task.date}</span>*/}
+      {/*          <Button onClick={() => completeTask(task.id)}>*/}
       {/*            Complete*/}
       {/*          </Button>*/}
       {/*        </li>*/}
@@ -75,15 +75,15 @@ function App() {
       {/*  </section>*/}
       {/*)}*/}
 
-      {/*{completedRoutines.length > 0 && (*/}
+      {/*{completedTasks.length > 0 && (*/}
       {/*  <section className="mt-12 border p-4 rounded">*/}
-      {/*    <h2 className="text-2xl mb-4">Completed Routines</h2>*/}
+      {/*    <h2 className="text-2xl mb-4">Completed Tasks</h2>*/}
       {/*    <ul>*/}
-      {/*      {completedRoutines.map((routine) => (*/}
-      {/*        <li key={routine.id} className="grid grid-cols-4 gap-4">*/}
-      {/*          <span>{routine.name}</span>*/}
-      {/*          <span>{routine.description}</span>*/}
-      {/*          <span>Completed on {routine.completedAt}</span>*/}
+      {/*      {completedTasks.map((task) => (*/}
+      {/*        <li key={task.id} className="grid grid-cols-4 gap-4">*/}
+      {/*          <span>{task.name}</span>*/}
+      {/*          <span>{task.description}</span>*/}
+      {/*          <span>Completed on {task.completedAt}</span>*/}
       {/*        </li>*/}
       {/*      ))}*/}
       {/*    </ul>*/}

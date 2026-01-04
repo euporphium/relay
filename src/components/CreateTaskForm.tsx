@@ -2,30 +2,30 @@ import type z from 'zod';
 import { useAppForm } from '@/components/form/hooks';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
-import { routineCollection } from '@/lib/collections';
-import { routineInputSchema, routineSchema } from '@/schemas/routine';
+import { taskInputSchema, taskSchema } from '@/schemas/task';
+import { createTask } from '@/server/tasks/createTask';
 
-const defaultValues: z.input<typeof routineInputSchema> = {
+const defaultValues: z.input<typeof taskInputSchema> = {
   name: '',
-  description: '',
-  date: new Date(),
+  note: '',
+  scheduledDate: new Date(),
 };
 
-export function CreateRoutineForm() {
+export function CreateTaskForm() {
   const form = useAppForm({
     defaultValues,
     validators: {
-      onSubmit: routineInputSchema,
+      onSubmit: taskInputSchema,
     },
-    onSubmit: ({ value }) => {
-      const inputResult = routineInputSchema.safeParse(value);
+    onSubmit: async ({ value }) => {
+      const inputResult = taskInputSchema.safeParse(value);
 
       if (!inputResult.success) {
         console.error(inputResult.error);
         return;
       }
 
-      const persistedResult = routineSchema.safeParse({
+      const persistedResult = taskSchema.safeParse({
         id: crypto.randomUUID(),
         ...inputResult.data,
         createdAt: new Date().toISOString(),
@@ -36,7 +36,7 @@ export function CreateRoutineForm() {
         return;
       }
 
-      routineCollection.insert(persistedResult.data);
+      await createTask({ data: persistedResult.data });
 
       form.reset();
     },
@@ -54,17 +54,17 @@ export function CreateRoutineForm() {
           {(field) => <field.Input label="Name" />}
         </form.AppField>
 
-        <form.AppField name="description">
+        <form.AppField name="note">
           {(field) => (
             <field.Textarea
-              label="Description"
-              description="Be as specific as possible"
+              label="Note"
+              description="Optional additional context"
             />
           )}
         </form.AppField>
 
-        <form.AppField name="date">
-          {(field) => <field.DatePicker label="Date" />}
+        <form.AppField name="scheduledDate">
+          {(field) => <field.DatePicker label="Scheduled date" />}
         </form.AppField>
 
         <Button>Create</Button>

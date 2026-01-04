@@ -2,13 +2,13 @@ import {
   createCollection,
   localStorageCollectionOptions,
 } from '@tanstack/react-db';
-import { routineSchema } from '@/schemas/routine';
+import { taskSchema } from '@/schemas/task';
 
-export const routineCollection = createCollection(
+export const taskCollection = createCollection(
   localStorageCollectionOptions({
-    id: 'routines',
-    storageKey: 'app-routines',
-    schema: routineSchema,
-    getKey: (routine) => routine.id,
+    id: 'tasks',
+    storageKey: 'app-tasks',
+    schema: taskSchema,
+    getKey: (task) => task.id,
   }),
 );
