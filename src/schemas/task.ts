@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { z } from 'zod';
 import { startOfToday } from '@/lib/utils';
+import { calendarIntervalSchema } from '@/schemas/calendarInterval';
 
 export const taskInputSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -13,6 +14,7 @@ export const taskInputSchema = z.object({
     .date('Date is required')
     .min(startOfToday(), 'Date must be today or later')
     .transform((d) => format(d, 'yyyy-MM-dd')),
+  preview: calendarIntervalSchema.optional(),
 });
 
 export const taskSchema = taskInputSchema.extend({

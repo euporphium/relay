@@ -1,7 +1,9 @@
 import type * as z from 'zod';
 import { useAppForm } from '@/components/form/hooks';
+import { OptionalField } from '@/components/form/OptionalField';
 import { Button } from '@/components/ui/button';
-import { FieldGroup } from '@/components/ui/field';
+import { FieldGroup, FieldSeparator } from '@/components/ui/field';
+import { getFieldValidator } from '@/lib/utils';
 import { taskInputSchema, taskSchema } from '@/schemas/task';
 import { createTask } from '@/server/tasks/createTask';
 
@@ -9,6 +11,7 @@ const defaultValues: z.input<typeof taskInputSchema> = {
   name: '',
   note: '',
   scheduledDate: new Date(),
+  preview: undefined,
 };
 
 export function CreateTaskForm() {
@@ -66,6 +69,30 @@ export function CreateTaskForm() {
         <form.AppField name="scheduledDate">
           {(field) => <field.DatePicker label="Scheduled date" />}
         </form.AppField>
+
+        <FieldSeparator />
+
+        <form.AppField
+          name="preview"
+          // Nested object fields need explicit validators to populate field.state.meta.errors
+          validators={{
+            onSubmit: getFieldValidator(taskInputSchema, 'preview'),
+          }}
+        >
+          {(field) => (
+            <OptionalField
+              label="Enable preview"
+              description="Show the task ahead of its scheduled date"
+              value={field.state.value}
+              defaultValue={{ value: '1', unit: 'day' }}
+              onChange={field.handleChange}
+            >
+              <field.CalendarInterval label="How far in advance" />
+            </OptionalField>
+          )}
+        </form.AppField>
+
+        <FieldSeparator />
 
         <Button>Create</Button>
       </FieldGroup>

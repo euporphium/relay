@@ -10,13 +10,13 @@ export const createTask = createServerFn({ method: 'POST' })
       id: data.id,
       name: data.name,
       note: data.note,
-      scheduledDate: new Date(data.scheduledDate),
+      scheduledDate: data.scheduledDate,
       createdAt: new Date(data.createdAt),
       updatedAt: new Date(data.createdAt),
+      previewLeadTime: data.preview?.value,
+      previewUnit: data.preview?.unit,
 
       // hardcoded for now
-      previewLeadTime: null,
-      previewUnit: null,
       rescheduleEvery: null,
       rescheduleUnit: null,
       rescheduleFrom: null,

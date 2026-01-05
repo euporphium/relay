@@ -1,4 +1,5 @@
 import {
+  date,
   integer,
   pgEnum,
   pgTable,
@@ -25,7 +26,7 @@ export const tasks = pgTable('tasks', {
   name: text('name').notNull(),
   note: text('note'),
 
-  scheduledDate: timestamp('scheduled_date', { withTimezone: false }).notNull(),
+  scheduledDate: date('scheduled_date').notNull(),
 
   /* Preview rule */
   previewLeadTime: integer('preview_lead_time'),
@@ -36,15 +37,9 @@ export const tasks = pgTable('tasks', {
   rescheduleUnit: intervalUnitEnum('reschedule_unit'),
   rescheduleFrom: rescheduleAnchorEnum('reschedule_from'),
 
-  archivedAt: timestamp('archived_at', { withTimezone: false }),
-
-  createdAt: timestamp('created_at', { withTimezone: false })
-    .defaultNow()
-    .notNull(),
-
-  updatedAt: timestamp('updated_at', { withTimezone: false })
-    .defaultNow()
-    .notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  archivedAt: timestamp('archived_at'),
 });
 
 export const taskCompletions = pgTable('task_completions', {
@@ -55,15 +50,11 @@ export const taskCompletions = pgTable('task_completions', {
     .references(() => tasks.id, { onDelete: 'cascade' }),
 
   /* Absolute moment (UTC) */
-  completedAt: timestamp('completed_at', {
-    withTimezone: true,
-  }).notNull(),
+  completedAt: timestamp('completed_at').notNull(),
 
   /* Local calendar date (no timezone) */
-  completedDate: timestamp('completed_date', {
-    withTimezone: false,
-  }).notNull(),
+  completedDate: date('completed_date').notNull(),
 
   /* Snapshot of the scheduled date at completion time */
-  scheduledDate: timestamp('scheduled_date', { withTimezone: false }).notNull(),
+  scheduledDate: date('scheduled_date').notNull(),
 });
