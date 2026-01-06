@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { addDays, format, parseISO, subDays } from 'date-fns';
 import { useEffect } from 'react';
 import { z } from 'zod';
@@ -6,6 +6,7 @@ import { ActiveTasks, UpcomingTasks } from '@/components/TaskRow';
 import { Button } from '@/components/ui/button';
 import { Route as TasksEditRoute } from '@/routes/tasks/$taskId';
 import { Route as TasksCreateRoute } from '@/routes/tasks/create';
+import { completeTask } from '@/server/tasks/completeTask';
 import { getTasksForDate } from '@/server/tasks/getTasksForDate';
 
 export const Route = createFileRoute('/tasks/')({
@@ -35,6 +36,7 @@ export const Route = createFileRoute('/tasks/')({
 function RouteComponent() {
   const { tasks, targetDate } = Route.useLoaderData();
   const navigate = Route.useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     // Canonicalize the route on the client using the user's local "today".
@@ -57,6 +59,14 @@ function RouteComponent() {
 
   const activeTasks = tasks.filter((task) => task.status === 'active');
   const upcomingTasks = tasks.filter((task) => task.status === 'upcoming');
+
+  async function onComplete(id: string) {
+    await completeTask({
+      data: { id, completedDate: format(new Date(), 'yyyy-MM-dd') },
+    });
+
+    router.invalidate();
+  }
 
   function onEdit(id: string) {
     navigate({ to: TasksEditRoute.to, params: { taskId: id } });
@@ -103,7 +113,7 @@ function RouteComponent() {
 
       <ActiveTasks
         tasks={activeTasks}
-        onComplete={(id) => console.log('Complete task', id)}
+        onComplete={onComplete}
         onEdit={onEdit}
       />
 
