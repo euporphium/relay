@@ -1,47 +1,31 @@
-import type * as z from 'zod';
 import { useAppForm } from '@/components/form/hooks';
 import { OptionalField } from '@/components/form/OptionalField';
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSeparator } from '@/components/ui/field';
 import { getFieldValidator } from '@/lib/utils';
-import { taskInputSchema, taskSchema } from '@/schemas/task';
+import { type TaskFormValues, taskFormSchema } from '@/schemas/task';
 import { createTask } from '@/server/tasks/createTask';
 
-const defaultValues: z.input<typeof taskInputSchema> = {
+const defaultValues: TaskFormValues = {
   name: '',
   note: '',
   scheduledDate: new Date(),
   preview: undefined,
 };
 
-export function CreateTaskForm() {
+type CreateTaskFormProps = {
+  onSuccess?: () => void;
+};
+
+export function CreateTaskForm({ onSuccess }: CreateTaskFormProps) {
   const form = useAppForm({
     defaultValues,
-    validators: {
-      onSubmit: taskInputSchema,
-    },
+    validators: { onSubmit: taskFormSchema },
     onSubmit: async ({ value }) => {
-      const inputResult = taskInputSchema.safeParse(value);
-
-      if (!inputResult.success) {
-        console.error(inputResult.error);
-        return;
-      }
-
-      const persistedResult = taskSchema.safeParse({
-        id: crypto.randomUUID(),
-        ...inputResult.data,
-        createdAt: new Date().toISOString(),
-      });
-
-      if (!persistedResult.success) {
-        console.error(persistedResult.error);
-        return;
-      }
-
-      await createTask({ data: persistedResult.data });
+      await createTask({ data: value });
 
       form.reset();
+      onSuccess?.();
     },
   });
 
@@ -76,7 +60,7 @@ export function CreateTaskForm() {
           name="preview"
           // Nested object fields need explicit validators to populate field.state.meta.errors
           validators={{
-            onSubmit: getFieldValidator(taskInputSchema, 'preview'),
+            onSubmit: getFieldValidator(taskFormSchema, 'preview'),
           }}
         >
           {(field) => (

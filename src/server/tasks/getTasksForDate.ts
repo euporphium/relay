@@ -4,13 +4,6 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
 
-// export const getTasks = createServerFn().handler(async () => {
-//   return db.query.tasks.findMany({
-//     where: isNull(tasks.archivedAt),
-//     orderBy: tasks.scheduledDate,
-//   });
-// });
-
 export const getTasksForDate = createServerFn()
   .inputValidator(z.iso.date())
   .handler(async ({ data: targetDate }) => {

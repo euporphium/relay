@@ -1,5 +1,7 @@
+import { isNull } from 'drizzle-orm';
 import {
   date,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -20,27 +22,35 @@ export const intervalUnitEnum = pgEnum('interval_unit', [
   'year',
 ]);
 
-export const tasks = pgTable('tasks', {
-  id: uuid('id').defaultRandom().primaryKey(),
+export const tasks = pgTable(
+  'tasks',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
 
-  name: text('name').notNull(),
-  note: text('note'),
+    name: text('name').notNull(),
+    note: text('note'),
 
-  scheduledDate: date('scheduled_date').notNull(),
+    scheduledDate: date('scheduled_date').notNull(),
 
-  /* Preview rule */
-  previewLeadTime: integer('preview_lead_time'),
-  previewUnit: intervalUnitEnum('preview_unit'),
+    /* Preview rule */
+    previewLeadTime: integer('preview_lead_time'),
+    previewUnit: intervalUnitEnum('preview_unit'),
 
-  /* Reschedule rule */
-  rescheduleEvery: integer('reschedule_every'),
-  rescheduleUnit: intervalUnitEnum('reschedule_unit'),
-  rescheduleFrom: rescheduleAnchorEnum('reschedule_from'),
+    /* Reschedule rule */
+    rescheduleEvery: integer('reschedule_every'),
+    rescheduleUnit: intervalUnitEnum('reschedule_unit'),
+    rescheduleFrom: rescheduleAnchorEnum('reschedule_from'),
 
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  archivedAt: timestamp('archived_at'),
-});
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    archivedAt: timestamp('archived_at'),
+  },
+  (table) => [
+    index('tasks_active_scheduled_date_idx')
+      .on(table.scheduledDate)
+      .where(isNull(table.archivedAt)),
+  ],
+);
 
 export const taskCompletions = pgTable('task_completions', {
   id: uuid('id').defaultRandom().primaryKey(),

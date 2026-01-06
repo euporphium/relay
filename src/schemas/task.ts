@@ -1,25 +1,26 @@
 import { format } from 'date-fns';
 import { z } from 'zod';
-import { startOfToday } from '@/lib/utils';
 import { calendarIntervalSchema } from '@/schemas/calendarInterval';
+import type { getTask } from '@/server/tasks/getTask';
+import type { getTasksForDate } from '@/server/tasks/getTasksForDate';
 
-export const taskInputSchema = z.object({
+export const taskFormSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
-  note: z
-    .string()
-    .trim()
-    .optional()
-    .transform((v) => v || undefined),
-  scheduledDate: z
-    .date('Date is required')
-    .min(startOfToday(), 'Date must be today or later')
-    .transform((d) => format(d, 'yyyy-MM-dd')),
+  note: z.string().trim().optional(),
+  scheduledDate: z.date('Date is required'),
   preview: calendarIntervalSchema.optional(),
 });
 
-export const taskSchema = taskInputSchema.extend({
-  id: z.string(),
-  scheduledDate: z.iso.date(),
-  createdAt: z.iso.datetime(),
-  completedAt: z.iso.datetime().nullable().optional().default(null),
-});
+export type TaskFormValues = z.input<typeof taskFormSchema>;
+
+// TODO move to /server?
+export const taskServerInputSchema = taskFormSchema.transform((v) => ({
+  ...v,
+  note: v.note?.trim() ?? undefined,
+  scheduledDate: format(v.scheduledDate, 'yyyy-MM-dd'),
+}));
+
+export type Task = Awaited<ReturnType<typeof getTask>>;
+
+type GetTasksForDateResult = Awaited<ReturnType<typeof getTasksForDate>>;
+export type TaskForDate = GetTasksForDateResult[number];
