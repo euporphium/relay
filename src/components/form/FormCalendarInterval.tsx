@@ -1,3 +1,4 @@
+import type { CalendarIntervalInput } from '@/components/form/calendarInterval.schema';
 import { FormBase, type FormControlProps } from '@/components/form/FormBase';
 import { FieldSet } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,6 @@ import {
   type CalendarIntervalUnit,
   calendarIntervalUnits,
 } from '@/domain/calendar/calendarInterval';
-import type { CalendarIntervalInput } from '@/schemas/calendarInterval';
 import { useFieldContext } from './hooks';
 
 const defaultFieldState: CalendarIntervalInput = {

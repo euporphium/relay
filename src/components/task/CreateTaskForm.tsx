@@ -1,9 +1,12 @@
 import { useAppForm } from '@/components/form/hooks';
 import { OptionalField } from '@/components/form/OptionalField';
+import {
+  type TaskFormValues,
+  taskFormSchema,
+} from '@/components/task/taskForm.schema';
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSeparator } from '@/components/ui/field';
 import { getFieldValidator } from '@/lib/utils';
-import { type TaskFormValues, taskFormSchema } from '@/schemas/task';
 import { createTask } from '@/server/tasks/createTask';
 
 const defaultValues: TaskFormValues = {

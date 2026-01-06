@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { TaskForDate } from '@/schemas/task';
+import type { TaskForDate } from '@/server/tasks/getTasksForDate';
 
 type TaskRowProps = {
   task: TaskForDate;

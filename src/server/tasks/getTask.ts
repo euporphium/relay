@@ -9,3 +9,5 @@ export const getTask = createServerFn()
   .handler(async ({ data: id }) => {
     return db.query.tasks.findFirst({ where: eq(tasks.id, id) });
   });
+
+export type Task = Awaited<ReturnType<typeof getTask>>;

@@ -2,11 +2,14 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 import { parseISO } from 'date-fns';
 import { useAppForm } from '@/components/form/hooks';
 import { OptionalField } from '@/components/form/OptionalField';
+import {
+  type TaskFormValues,
+  taskFormSchema,
+} from '@/components/task/taskForm.schema';
 import { Button } from '@/components/ui/button';
 import { FieldGroup, FieldSeparator } from '@/components/ui/field';
 import { getFieldValidator } from '@/lib/utils';
-import { type Task, type TaskFormValues, taskFormSchema } from '@/schemas/task';
-import { getTask } from '@/server/tasks/getTask';
+import { getTask, type Task } from '@/server/tasks/getTask';
 import { updateTask } from '@/server/tasks/updateTask';
 
 export const Route = createFileRoute('/tasks/$taskId')({

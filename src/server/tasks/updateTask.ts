@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
-import { taskServerInputSchema } from '@/schemas/task';
+import { taskServerInputSchema } from '@/server/tasks/createTask';
 
 export const updateTask = createServerFn({ method: 'POST' })
   .inputValidator(

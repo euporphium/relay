@@ -34,3 +34,6 @@ export const getTasksForDate = createServerFn()
       },
     });
   });
+
+type GetTasksForDateResult = Awaited<ReturnType<typeof getTasksForDate>>;
+export type TaskForDate = GetTasksForDateResult[number];

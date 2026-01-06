@@ -1,7 +1,14 @@
 import { createServerFn } from '@tanstack/react-start';
+import { format } from 'date-fns';
+import { taskFormSchema } from '@/components/task/taskForm.schema';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
-import { taskServerInputSchema } from '@/schemas/task';
+
+export const taskServerInputSchema = taskFormSchema.transform((v) => ({
+  ...v,
+  note: v.note?.trim() ?? undefined,
+  scheduledDate: format(v.scheduledDate, 'yyyy-MM-dd'),
+}));
 
 export const createTask = createServerFn({ method: 'POST' })
   .inputValidator(taskServerInputSchema)
