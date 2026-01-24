@@ -6,6 +6,11 @@ export const taskFormSchema = z.object({
   note: z.string().trim().optional(),
   scheduledDate: z.date('Date is required'),
   preview: calendarIntervalSchema.optional(),
+  reschedule: calendarIntervalSchema
+    .extend({
+      from: z.enum(['scheduled', 'completion']),
+    })
+    .optional(),
 });
 
 export type TaskFormValues = z.input<typeof taskFormSchema>;

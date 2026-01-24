@@ -1,18 +1,19 @@
 import { createFileRoute, notFound } from '@tanstack/react-router';
 import { parseISO } from 'date-fns';
+import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
-import { OptionalField } from '@/components/form/OptionalField';
+import { TaskFormBody } from '@/components/task/TaskFormBody';
 import {
   type TaskFormValues,
   taskFormSchema,
 } from '@/components/task/taskForm.schema';
-import { Button } from '@/components/ui/button';
-import { FieldGroup, FieldSeparator } from '@/components/ui/field';
-import { getFieldValidator } from '@/lib/utils';
 import { getTask, type Task } from '@/server/tasks/getTask';
 import { updateTask } from '@/server/tasks/updateTask';
 
 export const Route = createFileRoute('/tasks/$taskId')({
+  validateSearch: z.object({
+    returnTo: z.string().optional(),
+  }),
   loader: async ({ params }) => {
     const task = await getTask({ data: params.taskId });
 
@@ -26,13 +27,15 @@ export const Route = createFileRoute('/tasks/$taskId')({
   notFoundComponent: () => (
     <div>
       <h1>Task not found</h1>
-      <p>The task you’re looking for doesn’t exist.</p>
+      <p>The task you're looking for doesn't exist.</p>
     </div>
   ),
 });
 
 function RouteComponent() {
   const { task } = Route.useLoaderData();
+  const navigate = Route.useNavigate();
+  const { returnTo } = Route.useSearch();
 
   const form = useAppForm({
     defaultValues: taskToFormDefaults(task),
@@ -46,7 +49,7 @@ function RouteComponent() {
         console.error('Error updating task:', e); // TODO (rare)
       }
 
-      // onSuccess?.();
+      navigate({ to: returnTo ?? '/tasks' });
     },
   });
 
@@ -59,50 +62,7 @@ function RouteComponent() {
         }}
         autoComplete="off"
       >
-        <FieldGroup>
-          <form.AppField name="name">
-            {(field) => <field.Input label="Name" />}
-          </form.AppField>
-
-          <form.AppField name="note">
-            {(field) => (
-              <field.Textarea
-                label="Note"
-                description="Optional additional context"
-              />
-            )}
-          </form.AppField>
-
-          <form.AppField name="scheduledDate">
-            {(field) => <field.DatePicker label="Scheduled date" />}
-          </form.AppField>
-
-          <FieldSeparator />
-
-          <form.AppField
-            name="preview"
-            // Nested object fields need explicit validators to populate field.state.meta.errors
-            validators={{
-              onSubmit: getFieldValidator(taskFormSchema, 'preview'),
-            }}
-          >
-            {(field) => (
-              <OptionalField
-                label="Enable preview"
-                description="Show the task ahead of its scheduled date"
-                value={field.state.value}
-                defaultValue={{ value: '1', unit: 'day' }}
-                onChange={field.handleChange}
-              >
-                <field.CalendarInterval label="How far in advance" />
-              </OptionalField>
-            )}
-          </form.AppField>
-
-          <FieldSeparator />
-
-          <Button>Save</Button>
-        </FieldGroup>
+        <TaskFormBody form={form} submitLabel="Save" />
       </form>
     </div>
   );
@@ -122,6 +82,16 @@ function taskToFormDefaults(task: Task): TaskFormValues {
         ? {
             value: String(task.previewLeadTime),
             unit: task.previewUnit,
+          }
+        : undefined,
+    reschedule:
+      task.rescheduleEvery != null &&
+      task.rescheduleUnit != null &&
+      task.rescheduleFrom != null
+        ? {
+            value: String(task.rescheduleEvery),
+            unit: task.rescheduleUnit,
+            from: task.rescheduleFrom,
           }
         : undefined,
   };

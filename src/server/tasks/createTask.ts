@@ -20,10 +20,9 @@ export const createTask = createServerFn({ method: 'POST' })
       previewLeadTime: data.preview?.value,
       previewUnit: data.preview?.unit,
 
-      // hardcoded for now
-      rescheduleEvery: null,
-      rescheduleUnit: null,
-      rescheduleFrom: null,
+      rescheduleEvery: data.reschedule?.value,
+      rescheduleUnit: data.reschedule?.unit,
+      rescheduleFrom: data.reschedule?.from,
       archivedAt: null,
     });
   });

@@ -25,10 +25,9 @@ export const updateTask = createServerFn({ method: 'POST' })
         previewLeadTime: task.preview?.value ?? null,
         previewUnit: task.preview?.unit ?? null,
 
-        // hardcoded for now
-        rescheduleEvery: null,
-        rescheduleUnit: null,
-        rescheduleFrom: null,
+        rescheduleEvery: task.reschedule?.value ?? null,
+        rescheduleUnit: task.reschedule?.unit ?? null,
+        rescheduleFrom: task.reschedule?.from ?? null,
 
         updatedAt: new Date(),
       })
