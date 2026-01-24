@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FieldDescription, FieldLabel } from '@/components/ui/field';
 
-type OptionalFieldProps<T> = {
+type ToggleableSectionProps<T> = {
   value: T | undefined;
   onChange: (value: T | undefined) => void;
   label: string;
@@ -11,14 +11,14 @@ type OptionalFieldProps<T> = {
   description?: string;
 };
 
-export function OptionalField<T>({
+export function ToggleableSection<T>({
   value,
   onChange,
   label,
   defaultValue,
   children,
   description,
-}: OptionalFieldProps<T>) {
+}: ToggleableSectionProps<T>) {
   const enabled = value !== undefined;
 
   return (

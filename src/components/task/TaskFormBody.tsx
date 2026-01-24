@@ -1,5 +1,5 @@
 import { withForm } from '@/components/form/hooks';
-import { OptionalField } from '@/components/form/OptionalField';
+import { ToggleableSection } from '@/components/form/ToggleableSection';
 import {
   type TaskFormValues,
   taskFormSchema,
@@ -58,7 +58,7 @@ export const TaskFormBody = withForm({
         }}
       >
         {(field) => (
-          <OptionalField
+          <ToggleableSection
             label="Enable preview"
             description="Show the task ahead of its scheduled date"
             value={field.state.value}
@@ -66,7 +66,7 @@ export const TaskFormBody = withForm({
             onChange={field.handleChange}
           >
             <field.CalendarInterval label="How far in advance" />
-          </OptionalField>
+          </ToggleableSection>
         )}
       </form.AppField>
 
@@ -80,7 +80,7 @@ export const TaskFormBody = withForm({
         }}
       >
         {(field) => (
-          <OptionalField
+          <ToggleableSection
             label="Suggest next occurrence"
             description="Calculate the next date based on a recurring interval"
             value={field.state.value}
@@ -131,7 +131,7 @@ export const TaskFormBody = withForm({
                 </FieldLabel>
               </RadioGroup>
             </FieldSet>
-          </OptionalField>
+          </ToggleableSection>
         )}
       </form.AppField>
 
