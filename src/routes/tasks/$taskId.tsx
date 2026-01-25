@@ -41,13 +41,9 @@ function RouteComponent() {
     defaultValues: taskToFormDefaults(task),
     validators: { onSubmit: taskFormSchema },
     onSubmit: async ({ value }) => {
-      try {
-        await updateTask({
-          data: { id: task.id, updates: value },
-        });
-      } catch (e) {
-        console.error('Error updating task:', e); // TODO (rare)
-      }
+      await updateTask({
+        data: { id: task.id, updates: value },
+      });
 
       navigate({ to: returnTo ?? '/tasks' });
     },

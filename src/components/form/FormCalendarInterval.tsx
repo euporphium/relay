@@ -37,11 +37,11 @@ export function FormCalendarInterval({ ...formProps }: FormControlProps) {
       : String(currentValue);
 
   const handleValueChange = (newValue: string) => {
-    field.handleChange({ value: newValue, unit: currentUnit });
+    field.handleChange({ ...fieldState, value: newValue, unit: currentUnit });
   };
 
   const handleUnitChange = (newUnit: CalendarIntervalUnit) => {
-    field.handleChange({ value: currentValue, unit: newUnit });
+    field.handleChange({ ...fieldState, value: currentValue, unit: newUnit });
   };
 
   return (

@@ -8,6 +8,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import type { ReactNode } from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toaster } from '@/components/ui/sonner';
 import stylesUrl from '../styles.css?url';
 
 export const Route = createRootRoute({
@@ -37,6 +38,7 @@ function RootComponent() {
   return (
     <RootDocument>
       <ThemeProvider>
+        <Toaster position="bottom-center" closeButton />
         <Outlet />
       </ThemeProvider>
       <TanStackDevtools
