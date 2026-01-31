@@ -1,14 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
-  component: RouteComponent,
+  beforeLoad: () => {
+    throw redirect({
+      to: '/tasks',
+    });
+  },
 });
-
-function RouteComponent() {
-  return (
-    <div className="p-4">
-      <ThemeToggle />
-    </div>
-  );
-}

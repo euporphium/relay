@@ -39,7 +39,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/create': typeof TasksCreateRoute
-  '/tasks': typeof TasksIndexRoute
+  '/tasks/': typeof TasksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -56,7 +56,7 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/tasks/$taskId' | '/tasks/create' | '/tasks'
+  fullPaths: '/' | '/tasks/$taskId' | '/tasks/create' | '/tasks/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/tasks/$taskId' | '/tasks/create' | '/tasks'
   id: '__root__' | '/' | '/tasks/$taskId' | '/tasks/create' | '/tasks/'
@@ -81,7 +81,7 @@ declare module '@tanstack/react-router' {
     '/tasks/': {
       id: '/tasks/'
       path: '/tasks'
-      fullPath: '/tasks'
+      fullPath: '/tasks/'
       preLoaderRoute: typeof TasksIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
