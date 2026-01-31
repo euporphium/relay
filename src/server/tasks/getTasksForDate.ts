@@ -4,9 +4,16 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
 
+type TaskExtras = {
+  previewStartDate: Date;
+  status: 'active' | 'upcoming';
+};
+
+export type TaskForDate = typeof tasks.$inferSelect & TaskExtras;
+
 export const getTasksForDate = createServerFn()
   .inputValidator(z.iso.date())
-  .handler(async ({ data: targetDate }) => {
+  .handler(async ({ data: targetDate }): Promise<TaskForDate[]> => {
     const previewStartDate = sql<Date>`
         ${tasks.scheduledDate}
         - (
@@ -32,8 +39,5 @@ export const getTasksForDate = createServerFn()
           end
         `.as('status'),
       },
-    });
+    }) as Promise<TaskForDate[]>;
   });
-
-type GetTasksForDateResult = Awaited<ReturnType<typeof getTasksForDate>>;
-export type TaskForDate = GetTasksForDateResult[number];
