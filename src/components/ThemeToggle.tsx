@@ -1,35 +1,29 @@
+import { DevicesIcon, MoonIcon, SunIcon } from '@phosphor-icons/react';
 import { type UserTheme, useTheme } from '@/components/ThemeProvider';
 import { Button } from './ui/button';
-
-const themeConfig: Record<UserTheme, { icon: string; label: string }> = {
-  light: { icon: '☀️', label: 'Light' },
-  dark: { icon: '🌙', label: 'Dark' },
-  system: { icon: '💻', label: 'System' },
-};
 
 export const ThemeToggle = () => {
   const { userTheme, setTheme } = useTheme();
 
-  const getNextTheme = () => {
-    const themes = Object.keys(themeConfig) as UserTheme[];
-    const currentIndex = themes.indexOf(userTheme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    return themes[nextIndex];
+  const getNextTheme = (): UserTheme => {
+    if (userTheme === 'light') return 'dark';
+    if (userTheme === 'dark') return 'system';
+    return 'light';
   };
 
   return (
     <Button onClick={() => setTheme(getNextTheme())} className="w-28">
-      <span className="not-system:light:inline hidden">
-        {themeConfig.light.label}
-        <span className="ml-1">{themeConfig.light.icon}</span>
+      <span className="not-system:light:inline-flex hidden items-center gap-1">
+        Light
+        <SunIcon weight="duotone" />
       </span>
-      <span className="not-system:dark:inline hidden">
-        {themeConfig.dark.label}
-        <span className="ml-1">{themeConfig.dark.icon}</span>
+      <span className="not-system:dark:inline-flex hidden items-center gap-1">
+        Dark
+        <MoonIcon weight="duotone" />
       </span>
-      <span className="system:inline hidden">
-        {themeConfig.system.label}
-        <span className="ml-1">{themeConfig.system.icon}</span>
+      <span className="system:inline-flex hidden items-center gap-1">
+        System
+        <DevicesIcon weight="duotone" />
       </span>
     </Button>
   );
