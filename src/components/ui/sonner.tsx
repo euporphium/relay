@@ -5,6 +5,7 @@ import {
   WarningIcon,
   XCircleIcon,
 } from '@phosphor-icons/react';
+import type * as React from 'react';
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
 import { useTheme } from '@/components/ThemeProvider';
 
@@ -13,24 +14,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   return (
     <Sonner
-      theme={appTheme as ToasterProps['theme']}
+      theme={appTheme}
       className="toaster group"
       icons={{
-        success: (
-          <CheckCircleIcon className="size-4" />
-        ),
-        info: (
-          <InfoIcon className="size-4" />
-        ),
-        warning: (
-          <WarningIcon className="size-4" />
-        ),
-        error: (
-          <XCircleIcon className="size-4" />
-        ),
-        loading: (
-          <SpinnerIcon className="size-4 animate-spin" />
-        ),
+        success: <CheckCircleIcon className="size-4" />,
+        info: <InfoIcon className="size-4" />,
+        warning: <WarningIcon className="size-4" />,
+        error: <XCircleIcon className="size-4" />,
+        loading: <SpinnerIcon className="size-4 animate-spin" />,
       }}
       style={
         {

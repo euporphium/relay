@@ -24,7 +24,7 @@ export function TaskRow({ task, onComplete, onEdit }: TaskRowProps) {
 
       {/* Task content */}
       <div className="flex-1 space-y-1">
-        <p className="leading-Rnone">{task.name}</p>
+        <p className="leading-none">{task.name}</p>
 
         {task.note && (
           <p className="text-sm text-muted-foreground">{task.note}</p>

@@ -73,6 +73,10 @@ function RouteComponent() {
     return null;
   }
 
+  const canonicalDateString = targetDate;
+  const canonicalDate = parseISO(canonicalDateString);
+  const displayDate = format(canonicalDate, 'EEE, MMM d');
+
   const visibleTasks = tasks.filter(
     (task) => !optimisticallyCompletedIds.has(task.id),
   );
@@ -134,7 +138,7 @@ function RouteComponent() {
     });
 
     completeTask({
-      data: { id, completedDate: format(new Date(), 'yyyy-MM-dd') },
+      data: { id, completedDate: canonicalDateString },
     })
       .then(async (result) => {
         const currentAttempt = attemptsRef.current.get(attemptId);
@@ -205,19 +209,19 @@ function RouteComponent() {
           onClick={() =>
             navigate({
               search: {
-                date: format(subDays(parseISO(targetDate), 1), 'yyyy-MM-dd'),
+                date: format(subDays(canonicalDate, 1), 'yyyy-MM-dd'),
               },
             })
           }
         >
           &lt;
         </Button>
-        {targetDate}
+        {displayDate}
         <Button
           onClick={() =>
             navigate({
               search: {
-                date: format(addDays(parseISO(targetDate), 1), 'yyyy-MM-dd'),
+                date: format(addDays(canonicalDate, 1), 'yyyy-MM-dd'),
               },
             })
           }
