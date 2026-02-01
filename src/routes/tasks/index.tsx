@@ -1,10 +1,12 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
-import { addDays, format, parseISO, subDays } from 'date-fns';
-import { useEffect, useRef, useState } from 'react';
+import { format, parseISO } from 'date-fns';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { DayNavigator } from '@/components/DayNavigator';
 import { ActiveTasks, UpcomingTasks } from '@/components/TaskRow';
 import { Button } from '@/components/ui/button';
+import { createCalendarDay } from '@/domain/calendar/calendarDay';
 import { Route as TasksEditRoute } from '@/routes/tasks/$taskId';
 import { Route as TasksCreateRoute } from '@/routes/tasks/create';
 import {
@@ -54,28 +56,11 @@ function RouteComponent() {
     new Set<string>(),
   );
 
-  useEffect(() => {
-    // Canonicalize the route on the client using the user's local "today".
-    // This avoids server-side timezone assumptions and keeps the URL explicit.
-    if (!targetDate) {
-      navigate({
-        search: {
-          date: format(new Date(), 'yyyy-MM-dd'),
-        },
-        replace: true,
-      });
-    }
-  }, [targetDate, navigate]);
-
-  // Prevent rendering until the canonical date is established
-  // TODO This could be replaced with a loading or skeleton state later.
   if (!targetDate) {
-    return null;
+    return <DayNavigator />;
   }
 
-  const canonicalDateString = targetDate;
-  const canonicalDate = parseISO(canonicalDateString);
-  const displayDate = format(canonicalDate, 'EEE, MMM d');
+  const day = createCalendarDay(targetDate);
 
   const visibleTasks = tasks.filter(
     (task) => !optimisticallyCompletedIds.has(task.id),
@@ -138,7 +123,7 @@ function RouteComponent() {
     });
 
     completeTask({
-      data: { id, completedDate: canonicalDateString },
+      data: { id, completedDate: day.iso },
     })
       .then(async (result) => {
         const currentAttempt = attemptsRef.current.get(attemptId);
@@ -203,32 +188,10 @@ function RouteComponent() {
   }
 
   return (
-    <div className="p-4 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <Button
-          onClick={() =>
-            navigate({
-              search: {
-                date: format(subDays(canonicalDate, 1), 'yyyy-MM-dd'),
-              },
-            })
-          }
-        >
-          &lt;
-        </Button>
-        {displayDate}
-        <Button
-          onClick={() =>
-            navigate({
-              search: {
-                date: format(addDays(canonicalDate, 1), 'yyyy-MM-dd'),
-              },
-            })
-          }
-        >
-          &gt;
-        </Button>
-      </div>
+    <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 md:py-12 flex flex-col gap-6">
+      <header className="flex flex-col items-center gap-3 rounded-xl bg-muted/30 px-4 py-3">
+        <DayNavigator day={day} />
+      </header>
 
       <Button
         onClick={() =>

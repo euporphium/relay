@@ -14,7 +14,7 @@ export function TaskRow({ task, onComplete, onEdit }: TaskRowProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-4 rounded-lg border p-4',
+        'flex items-center gap-4 md:gap-6 rounded-lg border p-4',
         'hover:bg-muted/40 transition-colors',
       )}
     >
@@ -55,8 +55,8 @@ export function ActiveTasks({ tasks, onComplete, onEdit }: ActiveTasksProps) {
   const activeTasks = tasks.filter((task) => task.status === 'active');
 
   return (
-    <Card className="space-y-4 p-6">
-      <h2 className="text-lg font-semibold">Active Tasks</h2>
+    <Card className="space-y-4 p-6 md:p-8">
+      <h2 className="text-lg md:text-xl font-semibold">Active Tasks</h2>
 
       <div className="space-y-2">
         {activeTasks.length === 0 ? (
@@ -85,8 +85,8 @@ export function UpcomingTasks({ tasks, onEdit }: UpcomingTasksProps) {
   const upcomingTasks = tasks.filter((task) => task.status === 'upcoming');
 
   return (
-    <Card className="space-y-4 p-6">
-      <h2 className="text-lg font-semibold">Upcoming Tasks</h2>
+    <Card className="space-y-4 p-6 md:p-8">
+      <h2 className="text-lg md:text-xl font-semibold">Upcoming Tasks</h2>
 
       <div className="space-y-2">
         {upcomingTasks.length === 0 ? (
