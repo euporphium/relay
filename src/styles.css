@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source('./'); /* https://github.com/TanStack/router/issues/5812 */
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "sonner/dist/styles.css";
