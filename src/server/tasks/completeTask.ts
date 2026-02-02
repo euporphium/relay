@@ -1,10 +1,11 @@
 import { createServerFn } from '@tanstack/react-start';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { taskCompletions, tasks } from '@/db/schema';
 import { calculateNextOccurrence } from '@/domain/calendar/calculateNextOccurrence';
 import { getRescheduleRule } from '@/domain/calendar/rescheduleRule';
+import { authMiddleware } from '@/server/middleware/auth';
 
 export type CompleteTaskResult = {
   completionId: string;
@@ -12,13 +13,15 @@ export type CompleteTaskResult = {
 };
 
 export const completeTask = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
   .inputValidator(
     z.object({
       id: z.uuid(),
       completedDate: z.iso.date(),
     }),
   )
-  .handler(async ({ data }): Promise<CompleteTaskResult> => {
+  .handler(async ({ data, context }): Promise<CompleteTaskResult> => {
+    const { userId } = context;
     const { id, completedDate } = data;
 
     return db.transaction(async (tx) => {
@@ -26,7 +29,7 @@ export const completeTask = createServerFn({ method: 'POST' })
       const [task] = await tx
         .select()
         .from(tasks)
-        .where(eq(tasks.id, id))
+        .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
         .limit(1);
 
       if (!task) {
@@ -74,6 +77,7 @@ export const completeTask = createServerFn({ method: 'POST' })
       const [nextTask] = await tx
         .insert(tasks)
         .values({
+          userId,
           name: task.name,
           note: task.note,
           scheduledDate: nextScheduledDate,

@@ -1,4 +1,4 @@
-import { isNull } from 'drizzle-orm';
+import { isNull, relations } from 'drizzle-orm';
 import {
   date,
   index,
@@ -9,6 +9,7 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { user } from './auth.schema';
 
 export const rescheduleAnchorEnum = pgEnum('reschedule_anchor', [
   'scheduled',
@@ -26,6 +27,10 @@ export const tasks = pgTable(
   'tasks',
   {
     id: uuid('id').defaultRandom().primaryKey(),
+
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
 
     name: text('name').notNull(),
     note: text('note'),
@@ -46,11 +51,19 @@ export const tasks = pgTable(
     archivedAt: timestamp('archived_at'),
   },
   (table) => [
+    index('tasks_user_id_idx').on(table.userId),
     index('tasks_active_scheduled_date_idx')
-      .on(table.scheduledDate)
+      .on(table.userId, table.scheduledDate)
       .where(isNull(table.archivedAt)),
   ],
 );
+
+export const tasksRelations = relations(tasks, ({ one }) => ({
+  user: one(user, {
+    fields: [tasks.userId],
+    references: [user.id],
+  }),
+}));
 
 export const taskCompletions = pgTable('task_completions', {
   id: uuid('id').defaultRandom().primaryKey(),

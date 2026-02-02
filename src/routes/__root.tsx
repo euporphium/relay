@@ -1,6 +1,6 @@
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Outlet,
   Scripts,
@@ -9,9 +9,16 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import type { ReactNode } from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
+import { getSession } from '@/server/auth/getSession';
 import stylesUrl from '../styles.css?url';
 
-export const Route = createRootRoute({
+export type Session = Awaited<ReturnType<typeof getSession>>;
+
+interface RouterContext {
+  session: Session;
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -20,6 +27,10 @@ export const Route = createRootRoute({
     ],
     links: [{ rel: 'stylesheet', href: stylesUrl }],
   }),
+  beforeLoad: async () => {
+    const session = await getSession();
+    return { session };
+  },
   component: RootComponent,
   errorComponent: (props) => (
     <RootDocument>

@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { taskFormSchema } from '@/components/task/taskForm.schema';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
+import { authMiddleware } from '@/server/middleware/auth';
 
 export const taskServerInputSchema = taskFormSchema.transform((v) => ({
   ...v,
@@ -11,9 +12,13 @@ export const taskServerInputSchema = taskFormSchema.transform((v) => ({
 }));
 
 export const createTask = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
   .inputValidator(taskServerInputSchema)
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
     await db.insert(tasks).values({
+      userId,
       name: data.name,
       note: data.note,
       scheduledDate: data.scheduledDate,

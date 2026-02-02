@@ -5,5 +5,6 @@ export function getRouter() {
   return createRouter({
     routeTree,
     scrollRestoration: true,
+    context: { session: null },
   });
 }

@@ -1,10 +1,12 @@
 import { createServerFn } from '@tanstack/react-start';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { taskCompletions, tasks } from '@/db/schema';
+import { authMiddleware } from '@/server/middleware/auth';
 
 export const undoTaskCompletion = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
   .inputValidator(
     z.object({
       taskId: z.uuid(),
@@ -12,8 +14,21 @@ export const undoTaskCompletion = createServerFn({ method: 'POST' })
       nextTaskId: z.uuid().optional(),
     }),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
     await db.transaction(async (tx) => {
+      // Verify the task belongs to the user before proceeding
+      const [task] = await tx
+        .select({ id: tasks.id })
+        .from(tasks)
+        .where(and(eq(tasks.id, data.taskId), eq(tasks.userId, userId)))
+        .limit(1);
+
+      if (!task) {
+        throw new Error('Task not found');
+      }
+
       await tx
         .delete(taskCompletions)
         .where(eq(taskCompletions.id, data.completionId));
@@ -21,10 +36,12 @@ export const undoTaskCompletion = createServerFn({ method: 'POST' })
       await tx
         .update(tasks)
         .set({ archivedAt: null, updatedAt: new Date() })
-        .where(eq(tasks.id, data.taskId));
+        .where(and(eq(tasks.id, data.taskId), eq(tasks.userId, userId)));
 
       if (data.nextTaskId) {
-        await tx.delete(tasks).where(eq(tasks.id, data.nextTaskId));
+        await tx
+          .delete(tasks)
+          .where(and(eq(tasks.id, data.nextTaskId), eq(tasks.userId, userId)));
       }
     });
   });

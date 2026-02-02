@@ -1,18 +1,21 @@
 import { createServerFn } from '@tanstack/react-start';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
+import { authMiddleware } from '@/server/middleware/auth';
 import { taskServerInputSchema } from '@/server/tasks/createTask';
 
 export const updateTask = createServerFn({ method: 'POST' })
+  .middleware([authMiddleware])
   .inputValidator(
     z.object({
       id: z.uuid(),
       updates: taskServerInputSchema,
     }),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
     const { id, updates: task } = data;
 
     const result = await db
@@ -31,7 +34,7 @@ export const updateTask = createServerFn({ method: 'POST' })
 
         updatedAt: new Date(),
       })
-      .where(eq(tasks.id, id))
+      .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
       .returning({ id: tasks.id });
 
     if (result.length === 0) {
