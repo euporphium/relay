@@ -5,6 +5,7 @@ import {
   redirect,
   useRouter,
 } from '@tanstack/react-router';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
 
@@ -32,7 +33,8 @@ function TasksLayout() {
     <>
       <header className="border-b">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">{user.email}</span>
+          <span className="text-sm text-muted-foreground">{user.name}</span>
+          <ThemeToggle />
           <Button variant="ghost" size="sm" onClick={handleSignOut}>
             <SignOutIcon className="size-4" />
             Sign out

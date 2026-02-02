@@ -12,18 +12,18 @@ export const ThemeToggle = () => {
   };
 
   return (
-    <Button onClick={() => setTheme(getNextTheme())} className="w-28">
+    <Button onClick={() => setTheme(getNextTheme())} variant="ghost" size="sm">
       <span className="not-system:light:inline-flex hidden items-center gap-1">
+        <SunIcon weight="duotone" className="size-4" />
         Light
-        <SunIcon weight="duotone" />
       </span>
       <span className="not-system:dark:inline-flex hidden items-center gap-1">
+        <MoonIcon weight="duotone" className="size-4" />
         Dark
-        <MoonIcon weight="duotone" />
       </span>
       <span className="system:inline-flex hidden items-center gap-1">
+        <DevicesIcon weight="duotone" className="size-4" />
         System
-        <DevicesIcon weight="duotone" />
       </span>
     </Button>
   );
