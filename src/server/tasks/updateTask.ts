@@ -4,14 +4,14 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
 import { authMiddleware } from '@/server/middleware/auth';
-import { taskServerInputSchema } from '@/server/tasks/createTask';
+import { taskPersistenceSchema } from '@/server/tasks/createTask';
 
 export const updateTask = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
   .inputValidator(
     z.object({
       id: z.uuid(),
-      updates: taskServerInputSchema,
+      updates: taskPersistenceSchema,
     }),
   )
   .handler(async ({ data, context }) => {

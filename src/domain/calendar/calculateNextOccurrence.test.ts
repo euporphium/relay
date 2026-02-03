@@ -120,4 +120,18 @@ describe('calculateNextOccurrence', () => {
       ).toThrow();
     });
   });
+
+  describe('invariants', () => {
+    test('result is strictly after completion date for all units', () => {
+      (['day', 'week', 'month', 'year'] as const).forEach((unit) => {
+        const result = calculateNextOccurrence({
+          scheduledDate: '2024-01-01',
+          completionDate: '2024-03-01',
+          reschedule: { every: 1, unit, from: 'scheduled' },
+        });
+
+        expect(result > '2024-03-01').toBe(true);
+      });
+    });
+  });
 });

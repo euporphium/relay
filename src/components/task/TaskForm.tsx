@@ -1,10 +1,6 @@
 import { withForm } from '@/components/form/hooks';
 import { ToggleableSection } from '@/components/form/ToggleableSection';
 import {
-  type TaskFormValues,
-  taskFormSchema,
-} from '@/components/task/taskForm.schema';
-import {
   Field,
   FieldContent,
   FieldDescription,
@@ -16,6 +12,10 @@ import {
   FieldTitle,
 } from '@/components/ui/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  type TaskInput,
+  taskInputSchema,
+} from '@/domain/task/taskInput.schema';
 import { getFieldValidator } from '@/lib/utils';
 
 export const TaskForm = withForm({
@@ -25,7 +25,7 @@ export const TaskForm = withForm({
     scheduledDate: new Date(),
     preview: undefined,
     reschedule: undefined,
-  } as TaskFormValues,
+  } as TaskInput,
   props: {
     submitLabel: '',
   },
@@ -61,7 +61,7 @@ export const TaskForm = withForm({
           name="preview"
           // Nested object fields need explicit validators to populate field.state.meta.errors
           validators={{
-            onSubmit: getFieldValidator(taskFormSchema, 'preview'),
+            onSubmit: getFieldValidator(taskInputSchema, 'preview'),
           }}
         >
           {(field) => (
@@ -83,7 +83,7 @@ export const TaskForm = withForm({
           name="reschedule"
           // Nested object fields need explicit validators to populate field.state.meta.errors
           validators={{
-            onSubmit: getFieldValidator(taskFormSchema, 'reschedule'),
+            onSubmit: getFieldValidator(taskInputSchema, 'reschedule'),
           }}
         >
           {(field) => (
