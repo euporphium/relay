@@ -54,6 +54,7 @@ function RouteComponent() {
   const { tasks, targetDate } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const router = useRouter();
+  const attemptIdRef = useRef(0);
   const attemptsRef = useRef<Map<string, CompletionAttempt>>(new Map());
   const [optimisticallyCompletedIds, setOptimisticallyCompletedIds] = useState(
     new Set<string>(),
@@ -106,8 +107,13 @@ function RouteComponent() {
     }
   }
 
+  function nextAttemptId() {
+    attemptIdRef.current += 1;
+    return `attempt-${attemptIdRef.current}`;
+  }
+
   function onComplete(id: string) {
-    const attemptId = crypto.randomUUID();
+    const attemptId = nextAttemptId();
     const attempt: CompletionAttempt = {
       taskId: id,
       canceled: false,
