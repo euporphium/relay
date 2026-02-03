@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { useServerFn } from '@tanstack/react-start';
 import { format, parseISO } from 'date-fns';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -48,6 +49,8 @@ export const Route = createFileRoute('/tasks/')({
 });
 
 function RouteComponent() {
+  const completeTaskFn = useServerFn(completeTask);
+  const undoTaskCompletionFn = useServerFn(undoTaskCompletion);
   const { tasks, targetDate } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const router = useRouter();
@@ -91,7 +94,7 @@ function RouteComponent() {
     toast.dismiss(attemptId);
 
     if (attempt.settled && attempt.serverResult) {
-      await undoTaskCompletion({
+      await undoTaskCompletionFn({
         data: {
           taskId: attempt.taskId,
           completionId: attempt.serverResult.completionId,
@@ -99,7 +102,7 @@ function RouteComponent() {
         },
       });
       attemptsRef.current.delete(attemptId);
-      router.invalidate();
+      void router.invalidate();
     }
   }
 
@@ -122,7 +125,7 @@ function RouteComponent() {
       },
     });
 
-    completeTask({
+    completeTaskFn({
       data: { id, completedDate: day.iso },
     })
       .then(async (result) => {
@@ -133,7 +136,7 @@ function RouteComponent() {
         currentAttempt.settled = true;
 
         if (currentAttempt.canceled) {
-          await undoTaskCompletion({
+          await undoTaskCompletionFn({
             data: {
               taskId: currentAttempt.taskId,
               completionId: result.completionId,
@@ -141,7 +144,7 @@ function RouteComponent() {
             },
           });
           attemptsRef.current.delete(attemptId);
-          router.invalidate();
+          void router.invalidate();
           return;
         }
 
@@ -168,7 +171,7 @@ function RouteComponent() {
           },
         );
 
-        router.invalidate();
+        void router.invalidate();
       })
       .catch(() => {
         const currentAttempt = attemptsRef.current.get(attemptId);
