@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
-import { TaskFormBody } from '@/components/task/TaskFormBody';
+import { TaskForm } from '@/components/task/TaskForm';
 import {
   type TaskFormValues,
   taskFormSchema,
@@ -33,20 +33,9 @@ function RouteComponent() {
     onSubmit: async ({ value }) => {
       await createTask({ data: value });
       form.reset();
-      navigate({ to: returnTo ?? '/tasks' });
+      void navigate({ to: returnTo ?? '/tasks' });
     },
   });
 
-  return (
-    <div className="p-4">
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          await form.handleSubmit();
-        }}
-      >
-        <TaskFormBody form={form} submitLabel="Create" />
-      </form>
-    </div>
-  );
+  return <TaskForm form={form} submitLabel="Create" />;
 }
