@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
-import { TaskFormBody } from '@/components/task/TaskFormBody';
+import { TaskForm } from '@/components/task/TaskForm';
 import {
-  type TaskFormValues,
-  taskFormSchema,
-} from '@/components/task/taskForm.schema';
+  type TaskInput,
+  taskInputSchema,
+} from '@/domain/task/taskInput.schema';
 import { createTask } from '@/server/tasks/createTask';
 
 export const Route = createFileRoute('/tasks/create')({
@@ -19,7 +19,7 @@ function RouteComponent() {
   const navigate = Route.useNavigate();
   const { returnTo } = Route.useSearch();
 
-  const defaultValues: TaskFormValues = {
+  const defaultValues: TaskInput = {
     name: '',
     note: '',
     scheduledDate: new Date(),
@@ -29,24 +29,13 @@ function RouteComponent() {
 
   const form = useAppForm({
     defaultValues,
-    validators: { onSubmit: taskFormSchema },
+    validators: { onSubmit: taskInputSchema },
     onSubmit: async ({ value }) => {
       await createTask({ data: value });
       form.reset();
-      navigate({ to: returnTo ?? '/tasks' });
+      void navigate({ to: returnTo ?? '/tasks' });
     },
   });
 
-  return (
-    <div className="p-4">
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          await form.handleSubmit();
-        }}
-      >
-        <TaskFormBody form={form} submitLabel="Create" />
-      </form>
-    </div>
-  );
+  return <TaskForm form={form} submitLabel="Create" />;
 }

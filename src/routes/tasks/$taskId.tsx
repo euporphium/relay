@@ -2,11 +2,11 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 import { parseISO } from 'date-fns';
 import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
-import { TaskFormBody } from '@/components/task/TaskFormBody';
+import { TaskForm } from '@/components/task/TaskForm';
 import {
-  type TaskFormValues,
-  taskFormSchema,
-} from '@/components/task/taskForm.schema';
+  type TaskInput,
+  taskInputSchema,
+} from '@/domain/task/taskInput.schema';
 import { getTask, type Task } from '@/server/tasks/getTask';
 import { updateTask } from '@/server/tasks/updateTask';
 
@@ -39,32 +39,20 @@ function RouteComponent() {
 
   const form = useAppForm({
     defaultValues: taskToFormDefaults(task),
-    validators: { onSubmit: taskFormSchema },
+    validators: { onSubmit: taskInputSchema },
     onSubmit: async ({ value }) => {
       await updateTask({
         data: { id: task.id, updates: value },
       });
 
-      navigate({ to: returnTo ?? '/tasks' });
+      void navigate({ to: returnTo ?? '/tasks' });
     },
   });
 
-  return (
-    <div className="p-4">
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          await form.handleSubmit();
-        }}
-        autoComplete="off"
-      >
-        <TaskFormBody form={form} submitLabel="Save" />
-      </form>
-    </div>
-  );
+  return <TaskForm form={form} submitLabel="Save" />;
 }
 
-function taskToFormDefaults(task: Task): TaskFormValues {
+function taskToFormDefaults(task: Task): TaskInput {
   if (!task) {
     throw Error('Task is required to populate form defaults');
   }

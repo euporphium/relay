@@ -1,11 +1,11 @@
 import { createServerFn } from '@tanstack/react-start';
 import { format } from 'date-fns';
-import { taskFormSchema } from '@/components/task/taskForm.schema';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
+import { taskInputSchema } from '@/domain/task/taskInput.schema';
 import { authMiddleware } from '@/server/middleware/auth';
 
-export const taskServerInputSchema = taskFormSchema.transform((v) => ({
+export const taskPersistenceSchema = taskInputSchema.transform((v) => ({
   ...v,
   note: v.note?.trim() ?? undefined,
   scheduledDate: format(v.scheduledDate, 'yyyy-MM-dd'),
@@ -13,7 +13,7 @@ export const taskServerInputSchema = taskFormSchema.transform((v) => ({
 
 export const createTask = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
-  .inputValidator(taskServerInputSchema)
+  .inputValidator(taskPersistenceSchema)
   .handler(async ({ data, context }) => {
     const { userId } = context;
 
