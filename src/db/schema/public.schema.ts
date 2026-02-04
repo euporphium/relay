@@ -75,7 +75,7 @@ export const taskResolutions = pgTable('task_resolutions', {
     .notNull()
     .references(() => tasks.id, { onDelete: 'cascade' }),
 
-  resolutionType: taskResolutionTypeEnum('type').notNull(),
+  resolutionType: taskResolutionTypeEnum('type').notNull().default('completed'),
 
   /* Absolute moment (UTC) */
   resolvedAt: timestamp('completed_at').notNull(),
