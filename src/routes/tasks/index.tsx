@@ -4,23 +4,26 @@ import { format, parseISO } from 'date-fns';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { DayNavigator } from '@/components/DayNavigator';
-import { ActiveTasks, UpcomingTasks } from '@/components/TaskRow';
 import { Button } from '@/components/ui/button';
 import { createCalendarDay } from '@/domain/calendar/calendarDay';
+import { DayNavigator } from '@/features/calendar/DayNavigator';
+import {
+  ActiveTasks,
+  UpcomingTasks,
+} from '@/features/tasks/components/TaskRow';
 import { Route as TasksEditRoute } from '@/routes/tasks/$taskId';
 import { Route as TasksCreateRoute } from '@/routes/tasks/create';
-import {
-  type CompleteTaskResult,
-  completeTask,
-} from '@/server/tasks/completeTask';
 import { getTasksForDate } from '@/server/tasks/getTasksForDate';
-import { undoTaskCompletion } from '@/server/tasks/undoTaskCompletion';
+import {
+  type ResolveTaskResult,
+  resolveTask,
+} from '@/server/tasks/resolveTask';
+import { undoTaskResolution } from '@/server/tasks/undoTaskResolution';
 
-type CompletionAttempt = {
+type ResolutionAttempt = {
   taskId: string;
   canceled: boolean;
-  serverResult?: CompleteTaskResult;
+  serverResult?: ResolveTaskResult;
   settled: boolean;
 };
 
@@ -49,13 +52,13 @@ export const Route = createFileRoute('/tasks/')({
 });
 
 function RouteComponent() {
-  const completeTaskFn = useServerFn(completeTask);
-  const undoTaskCompletionFn = useServerFn(undoTaskCompletion);
+  const resolveTaskFn = useServerFn(resolveTask);
+  const undoTaskResolutionFn = useServerFn(undoTaskResolution);
   const { tasks, targetDate } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const router = useRouter();
   const attemptIdRef = useRef(0);
-  const attemptsRef = useRef<Map<string, CompletionAttempt>>(new Map());
+  const attemptsRef = useRef<Map<string, ResolutionAttempt>>(new Map());
   const [optimisticallyCompletedIds, setOptimisticallyCompletedIds] = useState(
     new Set<string>(),
   );
@@ -95,10 +98,10 @@ function RouteComponent() {
     toast.dismiss(attemptId);
 
     if (attempt.settled && attempt.serverResult) {
-      await undoTaskCompletionFn({
+      await undoTaskResolutionFn({
         data: {
           taskId: attempt.taskId,
-          completionId: attempt.serverResult.completionId,
+          resolutionId: attempt.serverResult.resolutionId,
           nextTaskId: attempt.serverResult.nextTask?.id,
         },
       });
@@ -114,7 +117,7 @@ function RouteComponent() {
 
   function onComplete(id: string) {
     const attemptId = nextAttemptId();
-    const attempt: CompletionAttempt = {
+    const attempt: ResolutionAttempt = {
       taskId: id,
       canceled: false,
       settled: false,
@@ -131,8 +134,8 @@ function RouteComponent() {
       },
     });
 
-    completeTaskFn({
-      data: { id, completedDate: day.iso },
+    resolveTaskFn({
+      data: { id, resolutionType: 'completed', resolvedDate: day.iso },
     })
       .then(async (result) => {
         const currentAttempt = attemptsRef.current.get(attemptId);
@@ -142,10 +145,10 @@ function RouteComponent() {
         currentAttempt.settled = true;
 
         if (currentAttempt.canceled) {
-          await undoTaskCompletionFn({
+          await undoTaskResolutionFn({
             data: {
               taskId: currentAttempt.taskId,
-              completionId: result.completionId,
+              resolutionId: result.resolutionId,
               nextTaskId: result.nextTask?.id,
             },
           });

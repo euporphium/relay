@@ -2,15 +2,15 @@ import { createServerFn } from '@tanstack/react-start';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { taskCompletions, tasks } from '@/db/schema';
+import { taskResolutions, tasks } from '@/db/schema';
 import { authMiddleware } from '@/server/middleware/auth';
 
-export const undoTaskCompletion = createServerFn({ method: 'POST' })
+export const undoTaskResolution = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
   .inputValidator(
     z.object({
       taskId: z.uuid(),
-      completionId: z.uuid(),
+      resolutionId: z.uuid(),
       nextTaskId: z.uuid().optional(),
     }),
   )
@@ -30,12 +30,12 @@ export const undoTaskCompletion = createServerFn({ method: 'POST' })
       }
 
       await tx
-        .delete(taskCompletions)
-        .where(eq(taskCompletions.id, data.completionId));
+        .delete(taskResolutions)
+        .where(eq(taskResolutions.id, data.resolutionId));
 
       await tx
         .update(tasks)
-        .set({ archivedAt: null, updatedAt: new Date() })
+        .set({ resolvedAt: null, updatedAt: new Date() })
         .where(and(eq(tasks.id, data.taskId), eq(tasks.userId, userId)));
 
       if (data.nextTaskId) {

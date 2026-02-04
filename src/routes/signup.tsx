@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { authClient } from '@/app/auth/auth-client';
 import { useAppForm } from '@/components/form/hooks';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +13,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { FieldGroup } from '@/components/ui/field';
-import { authClient } from '@/lib/auth-client';
 
 const signupSchema = z
   .object({

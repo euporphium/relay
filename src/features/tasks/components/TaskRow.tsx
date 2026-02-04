@@ -104,11 +104,11 @@ export function UpcomingTasks({ tasks, onEdit }: UpcomingTasksProps) {
 import { CheckIcon, PencilIcon } from '@phosphor-icons/react';
 import { format, parseISO } from 'date-fns';
 
-type CompletionButtonProps = {
+type TaskRowButtonProps = {
   onClick: () => void;
 };
 
-export function CompletionButton({ onClick }: CompletionButtonProps) {
+export function CompletionButton({ onClick }: TaskRowButtonProps) {
   return (
     <Button
       type="button"
@@ -122,11 +122,7 @@ export function CompletionButton({ onClick }: CompletionButtonProps) {
   );
 }
 
-type EditButtonProps = {
-  onClick: () => void;
-};
-
-export function EditButton({ onClick }: EditButtonProps) {
+export function EditButton({ onClick }: TaskRowButtonProps) {
   return (
     <Button
       type="button"

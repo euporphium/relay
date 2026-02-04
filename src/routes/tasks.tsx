@@ -5,9 +5,9 @@ import {
   redirect,
   useRouter,
 } from '@tanstack/react-router';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { authClient } from '@/app/auth/auth-client';
+import { ThemeToggle } from '@/app/theme/ThemeToggle';
 import { Button } from '@/components/ui/button';
-import { authClient } from '@/lib/auth-client';
 
 export const Route = createFileRoute('/tasks')({
   beforeLoad: async ({ context }) => {

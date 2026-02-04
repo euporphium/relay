@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import type { ReactNode } from 'react';
-import { ThemeProvider } from '@/components/ThemeProvider';
+import { ThemeProvider } from '@/app/theme/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { getSession } from '@/server/auth/getSession';
 import stylesUrl from '../styles.css?url';

@@ -7,7 +7,7 @@ import {
 } from '@phosphor-icons/react';
 import type * as React from 'react';
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
-import { useTheme } from '@/components/ThemeProvider';
+import { useTheme } from '@/app/theme/ThemeProvider';
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { appTheme } = useTheme();

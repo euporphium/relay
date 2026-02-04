@@ -28,6 +28,6 @@ export const createTask = createServerFn({ method: 'POST' })
       rescheduleEvery: data.reschedule?.value,
       rescheduleUnit: data.reschedule?.unit,
       rescheduleFrom: data.reschedule?.from,
-      archivedAt: null,
+      resolvedAt: null,
     });
   });

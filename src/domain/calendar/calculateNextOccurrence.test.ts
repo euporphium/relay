@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { calendarIntervalUnits } from '@/domain/calendar/calendarInterval';
 import { calculateNextOccurrence } from './calculateNextOccurrence';
 
 describe('calculateNextOccurrence', () => {
@@ -123,7 +124,7 @@ describe('calculateNextOccurrence', () => {
 
   describe('invariants', () => {
     test('result is strictly after completion date for all units', () => {
-      (['day', 'week', 'month', 'year'] as const).forEach((unit) => {
+      calendarIntervalUnits.forEach((unit) => {
         const result = calculateNextOccurrence({
           scheduledDate: '2024-01-01',
           completionDate: '2024-03-01',

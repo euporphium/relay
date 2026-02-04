@@ -9,19 +9,22 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { calendarIntervalUnits } from '@/domain/calendar/calendarInterval';
+import { rescheduleAnchors } from '@/domain/task/rescheduleAnchors';
+import { taskResolutionTypes } from '@/domain/task/taskResolutionTypes';
 import { user } from './auth.schema';
 
-export const rescheduleAnchorEnum = pgEnum('reschedule_anchor', [
-  'scheduled',
-  'completion',
-]);
+export const rescheduleAnchorEnum = pgEnum(
+  'reschedule_anchor',
+  rescheduleAnchors,
+);
 
-export const intervalUnitEnum = pgEnum('interval_unit', [
-  'day',
-  'week',
-  'month',
-  'year',
-]);
+export const intervalUnitEnum = pgEnum('interval_unit', calendarIntervalUnits);
+
+export const taskResolutionTypeEnum = pgEnum(
+  'task_resolution_type',
+  taskResolutionTypes,
+);
 
 export const tasks = pgTable(
   'tasks',
@@ -48,13 +51,13 @@ export const tasks = pgTable(
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
-    archivedAt: timestamp('archived_at'),
+    resolvedAt: timestamp('resolved_at'),
   },
   (table) => [
     index('tasks_user_id_idx').on(table.userId),
     index('tasks_active_scheduled_date_idx')
       .on(table.userId, table.scheduledDate)
-      .where(isNull(table.archivedAt)),
+      .where(isNull(table.resolvedAt)),
   ],
 );
 
@@ -65,18 +68,20 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
   }),
 }));
 
-export const taskCompletions = pgTable('task_completions', {
+export const taskResolutions = pgTable('task_resolutions', {
   id: uuid('id').defaultRandom().primaryKey(),
 
   taskId: uuid('task_id')
     .notNull()
     .references(() => tasks.id, { onDelete: 'cascade' }),
 
+  resolutionType: taskResolutionTypeEnum('type').notNull(),
+
   /* Absolute moment (UTC) */
-  completedAt: timestamp('completed_at').notNull(),
+  resolvedAt: timestamp('completed_at').notNull(),
 
   /* Local calendar date (no timezone) */
-  completedDate: date('completed_date').notNull(),
+  resolvedDate: date('completed_date').notNull(),
 
   /* Snapshot of the scheduled date at completion time */
   scheduledDate: date('scheduled_date').notNull(),

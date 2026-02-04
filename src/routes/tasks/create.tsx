@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
-import { TaskForm } from '@/components/task/TaskForm';
 import {
   type TaskInput,
   taskInputSchema,
 } from '@/domain/task/taskInput.schema';
+import { TaskForm } from '@/features/tasks/forms/TaskForm';
 import { createTask } from '@/server/tasks/createTask';
 
 export const Route = createFileRoute('/tasks/create')({

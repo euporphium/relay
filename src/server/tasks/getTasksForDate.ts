@@ -29,7 +29,7 @@ export const getTasksForDate = createServerFn()
     return db.query.tasks.findMany({
       where: and(
         eq(tasks.userId, userId),
-        isNull(tasks.archivedAt),
+        isNull(tasks.resolvedAt),
         sql`${previewStartDate} <= ${targetDate}`,
       ),
       orderBy: tasks.scheduledDate,

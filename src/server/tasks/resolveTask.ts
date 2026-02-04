@@ -2,27 +2,29 @@ import { createServerFn } from '@tanstack/react-start';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { taskCompletions, tasks } from '@/db/schema';
+import { taskResolutions, tasks } from '@/db/schema';
 import { calculateNextOccurrence } from '@/domain/calendar/calculateNextOccurrence';
 import { getRescheduleRule } from '@/domain/calendar/rescheduleRule';
+import { taskResolutionTypes } from '@/domain/task/taskResolutionTypes';
 import { authMiddleware } from '@/server/middleware/auth';
 
-export type CompleteTaskResult = {
-  completionId: string;
+export type ResolveTaskResult = {
+  resolutionId: string;
   nextTask?: { id: string; scheduledDate: string };
 };
 
-export const completeTask = createServerFn({ method: 'POST' })
+export const resolveTask = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
   .inputValidator(
     z.object({
       id: z.uuid(),
-      completedDate: z.iso.date(),
+      resolutionType: z.enum(taskResolutionTypes),
+      resolvedDate: z.iso.date(),
     }),
   )
-  .handler(async ({ data, context }): Promise<CompleteTaskResult> => {
+  .handler(async ({ data, context }): Promise<ResolveTaskResult> => {
     const { userId } = context;
-    const { id, completedDate } = data;
+    const { id, resolutionType, resolvedDate } = data;
 
     return db.transaction(async (tx) => {
       // 1. Get the current task details for the snapshot
@@ -36,28 +38,29 @@ export const completeTask = createServerFn({ method: 'POST' })
         throw new Error('Task not found');
       }
 
-      if (task.archivedAt) {
-        throw new Error('Task is already completed/archived');
+      if (task.resolvedAt) {
+        throw new Error('Task is already resolved');
       }
 
       const now = new Date();
 
-      // 2. Create the completion record
-      const [completion] = await tx
-        .insert(taskCompletions)
+      // 2. Create the resolution record
+      const [resolution] = await tx
+        .insert(taskResolutions)
         .values({
           taskId: task.id,
-          completedAt: now,
-          completedDate,
+          resolutionType,
+          resolvedAt: now,
+          resolvedDate,
           scheduledDate: task.scheduledDate,
         })
-        .returning({ id: taskCompletions.id });
+        .returning({ id: taskResolutions.id });
 
-      // 3. Archive the task
+      // 3. Resolve the task
       await tx
         .update(tasks)
         .set({
-          archivedAt: now,
+          resolvedAt: now,
           updatedAt: now,
         })
         .where(eq(tasks.id, id));
@@ -65,12 +68,12 @@ export const completeTask = createServerFn({ method: 'POST' })
       const rescheduleRule = getRescheduleRule(task);
 
       if (!rescheduleRule) {
-        return { completionId: completion.id };
+        return { resolutionId: resolution.id };
       }
 
       const nextScheduledDate = calculateNextOccurrence({
         scheduledDate: task.scheduledDate,
-        completionDate: completedDate,
+        completionDate: resolvedDate,
         reschedule: rescheduleRule,
       });
 
@@ -86,10 +89,10 @@ export const completeTask = createServerFn({ method: 'POST' })
           rescheduleEvery: rescheduleRule.every,
           rescheduleUnit: rescheduleRule.unit,
           rescheduleFrom: rescheduleRule.from,
-          archivedAt: null,
+          resolvedAt: null,
         })
         .returning({ id: tasks.id, scheduledDate: tasks.scheduledDate });
 
-      return { completionId: completion.id, nextTask };
+      return { resolutionId: resolution.id, nextTask };
     });
   });
