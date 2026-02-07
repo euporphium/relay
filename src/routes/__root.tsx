@@ -6,7 +6,8 @@ import {
   Scripts,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
+import { registerServiceWorker } from '@/app/pwa/registerServiceWorker';
 import { ThemeProvider } from '@/app/theme/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { getSession } from '@/server/auth/getSession';
@@ -25,7 +26,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Relay' },
     ],
-    links: [{ rel: 'stylesheet', href: stylesUrl }],
+    links: [
+      { rel: 'stylesheet', href: stylesUrl },
+      { rel: 'manifest', href: '/manifest.json' },
+    ],
   }),
   beforeLoad: async () => {
     const session = await getSession();
@@ -46,6 +50,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
   return (
     <RootDocument>
       <ThemeProvider>
