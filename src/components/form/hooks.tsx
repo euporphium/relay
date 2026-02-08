@@ -2,6 +2,7 @@ import { createFormHook, createFormHookContexts } from '@tanstack/react-form';
 import { FormCalendarInterval } from '@/components/form/FormCalendarInterval';
 import { FormDatePicker } from '@/components/form/FormDatePicker';
 import { FormInput } from '@/components/form/FormInput';
+import { FormSelect } from '@/components/form/FormSelect';
 import { FormSubmitButton } from '@/components/form/FormSubmitButton';
 import { FormTextarea } from '@/components/form/FormTextarea';
 
@@ -13,6 +14,7 @@ const { useAppForm, withForm } = createFormHook({
     CalendarInterval: FormCalendarInterval,
     DatePicker: FormDatePicker,
     Input: FormInput,
+    Select: FormSelect,
     Textarea: FormTextarea,
   },
   formComponents: {

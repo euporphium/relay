@@ -9,6 +9,7 @@ Implementation: drizzle-orm ^0.45.1 + pg ^8.18.0 (PostgreSQL)
 - Migrations are generated and tracked by drizzle-kit using `drizzle.config.ts` and the `drizzle/` folder.
 - All app queries are server-side and scoped by `userId` from `authMiddleware`.
 - Treat `resolved_at` as the canonical “inactive” marker for tasks; `NULL` means active.
+- Commitments live in `commitments` and `commitment_groups` with a dedicated `commitment_state` enum.
 
 ## Purpose
 
@@ -27,7 +28,8 @@ Implementation: drizzle-orm ^0.45.1 + pg ^8.18.0 (PostgreSQL)
 | `src/db/schema/auth.schema.ts`   | `auth` schema (Better Auth tables)                       |
 | `src/db/schema/public.schema.ts` | `public` schema (app tables)                             |
 | `src/env/server.ts`              | Runtime env validation for `DATABASE_URL`                |
-| `src/server/tasks/*.ts`          | Primary query and transaction patterns                   |
+| `src/server/tasks/*.ts`          | Task persistence and lifecycle operations                |
+| `src/server/commitments/*.ts`    | Commitment persistence and lifecycle operations          |
 | `src/app/auth/index.ts`          | Better Auth Drizzle adapter wiring                       |
 
 ## Conventions

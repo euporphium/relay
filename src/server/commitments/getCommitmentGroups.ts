@@ -1,0 +1,28 @@
+import { createServerFn } from '@tanstack/react-start';
+import { eq } from 'drizzle-orm';
+import { db } from '@/db';
+import { commitmentGroups } from '@/db/schema';
+import { authMiddleware } from '@/server/middleware/auth';
+
+export type CommitmentGroupOption = {
+  id: string;
+  name: string;
+};
+
+export const getCommitmentGroups = createServerFn()
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+
+    const groups = await db.query.commitmentGroups.findMany({
+      where: eq(commitmentGroups.userId, userId),
+      orderBy: [commitmentGroups.name],
+    });
+
+    return {
+      groups: groups.map((group) => ({
+        id: group.id,
+        name: group.name,
+      })),
+    };
+  });
