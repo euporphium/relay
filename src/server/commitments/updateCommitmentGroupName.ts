@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { commitmentGroups } from '@/db/schema';
+import { commitmentGroupShares, commitmentGroups } from '@/db/schema';
 import { authMiddleware } from '@/server/middleware/auth';
 
 export const updateCommitmentGroupNameSchema = z.object({
@@ -16,17 +16,26 @@ export const updateCommitmentGroupName = createServerFn({ method: 'POST' })
   .handler(async ({ data, context }) => {
     const { userId } = context;
 
-    const [existing] = await db
-      .select({ id: commitmentGroups.id })
+    const [group] = await db
+      .select({
+        id: commitmentGroups.id,
+        ownerId: commitmentGroups.userId,
+        permission: commitmentGroupShares.permission,
+      })
       .from(commitmentGroups)
-      .where(
+      .leftJoin(
+        commitmentGroupShares,
         and(
-          eq(commitmentGroups.id, data.id),
-          eq(commitmentGroups.userId, userId),
+          eq(commitmentGroupShares.groupId, commitmentGroups.id),
+          eq(commitmentGroupShares.sharedWithUserId, userId),
         ),
-      );
+      )
+      .where(eq(commitmentGroups.id, data.id));
 
-    if (!existing) {
+    const canEdit =
+      group && (group.ownerId === userId || group.permission === 'edit');
+
+    if (!canEdit) {
       throw new Error('Commitment group not found');
     }
 

@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
-import { eq } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import { db } from '@/db';
-import { commitmentGroups } from '@/db/schema';
+import { commitmentGroupShares, commitmentGroups } from '@/db/schema';
 import { authMiddleware } from '@/server/middleware/auth';
 
 export const getCommitmentGroups = createServerFn()
@@ -9,15 +9,38 @@ export const getCommitmentGroups = createServerFn()
   .handler(async ({ context }) => {
     const { userId } = context;
 
-    const groups = await db.query.commitmentGroups.findMany({
-      where: eq(commitmentGroups.userId, userId),
-      orderBy: [commitmentGroups.name],
-    });
+    const groups = await db
+      .select({
+        id: commitmentGroups.id,
+        name: commitmentGroups.name,
+        ownerId: commitmentGroups.userId,
+        permission: commitmentGroupShares.permission,
+      })
+      .from(commitmentGroups)
+      .leftJoin(
+        commitmentGroupShares,
+        and(
+          eq(commitmentGroupShares.groupId, commitmentGroups.id),
+          eq(commitmentGroupShares.sharedWithUserId, userId),
+        ),
+      )
+      .where(
+        or(
+          eq(commitmentGroups.userId, userId),
+          eq(commitmentGroupShares.sharedWithUserId, userId),
+        ),
+      )
+      .orderBy(commitmentGroups.name);
 
     return {
-      groups: groups.map((group) => ({
-        id: group.id,
-        name: group.name,
-      })),
+      groups: groups
+        .filter((group) => {
+          if (group.ownerId === userId) return true;
+          return group.permission === 'edit';
+        })
+        .map((group) => ({
+          id: group.id,
+          name: group.name,
+        })),
     };
   });

@@ -3,13 +3,13 @@ import { parseISO } from 'date-fns';
 import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
 import { TaskForm } from '@/features/tasks/forms/TaskForm';
-import type { Task } from '@/shared/types/task';
 import { getTask } from '@/server/tasks/getTask';
+import { updateTask } from '@/server/tasks/updateTask';
+import type { Task } from '@/shared/types/task';
 import {
   type TaskInput,
   taskInputSchema,
 } from '@/shared/validation/taskInput.schema';
-import { updateTask } from '@/server/tasks/updateTask';
 
 export const Route = createFileRoute('/tasks/$taskId')({
   validateSearch: z.object({

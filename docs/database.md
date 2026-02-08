@@ -9,7 +9,8 @@ Implementation: drizzle-orm ^0.45.1 + pg ^8.18.0 (PostgreSQL)
 - Migrations are generated and tracked by drizzle-kit using `drizzle.config.ts` and the `drizzle/` folder.
 - All app queries are server-side and scoped by `userId` from `authMiddleware`.
 - Treat `resolved_at` as the canonical “inactive” marker for tasks; `NULL` means active.
-- Commitments live in `commitments` and `commitment_groups` with a dedicated `commitment_state` enum.
+- Commitments are grouped, ordered, and stateful.
+- Commitment groups can be shared with view/edit permissions.
 
 ## Purpose
 

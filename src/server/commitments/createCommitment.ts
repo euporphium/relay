@@ -1,9 +1,13 @@
 import { createServerFn } from '@tanstack/react-start';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { commitmentGroups, commitments } from '@/db/schema';
-import { commitmentInputSchema } from '@/shared/validation/commitmentInput.schema';
+import {
+  commitmentGroupShares,
+  commitmentGroups,
+  commitments,
+} from '@/db/schema';
 import { authMiddleware } from '@/server/middleware/auth';
+import { commitmentInputSchema } from '@/shared/validation/commitmentInput.schema';
 
 export const commitmentPersistenceSchema = commitmentInputSchema.transform(
   (value) => ({
@@ -22,16 +26,37 @@ export const createCommitment = createServerFn({ method: 'POST' })
 
     await db.transaction(async (tx) => {
       let groupId: string | null = null;
+      let commitmentOwnerId = userId;
 
       if (data.groupId) {
-        const existingGroup = await tx.query.commitmentGroups.findFirst({
-          where: and(
-            eq(commitmentGroups.userId, userId),
-            eq(commitmentGroups.id, data.groupId),
-          ),
-        });
+        const [group] = await tx
+          .select({
+            id: commitmentGroups.id,
+            ownerId: commitmentGroups.userId,
+            permission: commitmentGroupShares.permission,
+          })
+          .from(commitmentGroups)
+          .leftJoin(
+            commitmentGroupShares,
+            and(
+              eq(commitmentGroupShares.groupId, commitmentGroups.id),
+              eq(commitmentGroupShares.sharedWithUserId, userId),
+            ),
+          )
+          .where(eq(commitmentGroups.id, data.groupId));
 
-        groupId = existingGroup?.id ?? null;
+        if (!group) {
+          throw new Error('Commitment group not found');
+        }
+
+        const canEdit = group.ownerId === userId || group.permission === 'edit';
+
+        if (!canEdit) {
+          throw new Error('Commitment group not found');
+        }
+
+        groupId = group.id;
+        commitmentOwnerId = group.ownerId;
       } else if (data.groupName) {
         const existingGroup = await tx.query.commitmentGroups.findFirst({
           where: and(
@@ -62,7 +87,7 @@ export const createCommitment = createServerFn({ method: 'POST' })
         .from(commitments)
         .where(
           and(
-            eq(commitments.userId, userId),
+            eq(commitments.userId, commitmentOwnerId),
             groupId
               ? eq(commitments.groupId, groupId)
               : isNull(commitments.groupId),
@@ -72,7 +97,7 @@ export const createCommitment = createServerFn({ method: 'POST' })
       const nextPosition = (positionRow?.max ?? 0) + 1;
 
       await tx.insert(commitments).values({
-        userId,
+        userId: commitmentOwnerId,
         groupId,
         title: data.title,
         note: data.note,

@@ -1,4 +1,5 @@
 import type { CommitmentState } from '@/domain/commitment/commitmentStates';
+import type { SharePermission } from '@/domain/share/sharePermissions';
 
 export type Commitment = {
   id: string;
@@ -10,10 +11,17 @@ export type Commitment = {
   updatedAt: Date;
 };
 
+export type CommitmentGroupAccess = {
+  isOwner: boolean;
+  canEdit: boolean;
+  permission: SharePermission;
+};
+
 export type CommitmentGroup = {
   id: string | null;
   name: string;
   commitments: Commitment[];
+  access: CommitmentGroupAccess;
 };
 
 export type CommitmentGroupOption = {

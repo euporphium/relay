@@ -18,6 +18,7 @@ type CommitmentRowProps = {
   containerProps?: ComponentPropsWithRef<'div'>;
   dragHandleProps?: ComponentPropsWithoutRef<'button'>;
   isDragging?: boolean;
+  canEdit?: boolean;
 };
 
 export function CommitmentRow({
@@ -26,6 +27,7 @@ export function CommitmentRow({
   containerProps,
   dragHandleProps,
   isDragging,
+  canEdit = true,
 }: CommitmentRowProps) {
   const isActive = commitment.state === 'active';
 
@@ -50,49 +52,51 @@ export function CommitmentRow({
         ) : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {isActive ? (
-          <Button
-            type="button"
-            size="xs"
-            variant="outline"
-            aria-label="Reorder commitment"
-            {...dragHandleProps}
-          >
-            <DotsSixVerticalIcon size={16} />
-          </Button>
-        ) : null}
-
-        {isActive ? (
-          <>
+      {canEdit ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {isActive ? (
             <Button
               type="button"
               size="xs"
-              variant="secondary"
-              onClick={() => onChangeState(commitment.id, 'fulfilled')}
+              variant="outline"
+              aria-label="Reorder commitment"
+              {...dragHandleProps}
             >
-              Fulfill
+              <DotsSixVerticalIcon size={16} />
             </Button>
+          ) : null}
+
+          {isActive ? (
+            <>
+              <Button
+                type="button"
+                size="xs"
+                variant="secondary"
+                onClick={() => onChangeState(commitment.id, 'fulfilled')}
+              >
+                Fulfill
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                variant="ghost"
+                onClick={() => onChangeState(commitment.id, 'released')}
+              >
+                Release
+              </Button>
+            </>
+          ) : (
             <Button
               type="button"
               size="xs"
               variant="ghost"
-              onClick={() => onChangeState(commitment.id, 'released')}
+              onClick={() => onChangeState(commitment.id, 'active')}
             >
-              Release
+              Reactivate
             </Button>
-          </>
-        ) : (
-          <Button
-            type="button"
-            size="xs"
-            variant="ghost"
-            onClick={() => onChangeState(commitment.id, 'active')}
-          >
-            Reactivate
-          </Button>
-        )}
-      </div>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -125,6 +129,7 @@ export function SortableCommitmentRow({
       commitment={commitment}
       onChangeState={onChangeState}
       isDragging={isDragging}
+      canEdit
       containerProps={{ ref: setNodeRef, style }}
       dragHandleProps={{
         ...attributes,

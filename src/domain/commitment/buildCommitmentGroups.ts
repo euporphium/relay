@@ -1,7 +1,22 @@
-import type { CommitmentGroup } from '@/shared/types/commitment';
+import type {
+  CommitmentGroup,
+  CommitmentGroupAccess,
+} from '@/shared/types/commitment';
 import type { CommitmentState } from './commitmentStates';
 
 const UNGROUPED_NAME = 'Ungrouped';
+
+const DEFAULT_ACCESS: CommitmentGroupAccess = {
+  isOwner: true,
+  canEdit: true,
+  permission: 'edit',
+};
+
+const FALLBACK_ACCESS: CommitmentGroupAccess = {
+  isOwner: false,
+  canEdit: false,
+  permission: 'view',
+};
 
 export type CommitmentGroupRow = {
   id: string;
@@ -12,6 +27,7 @@ export type CommitmentGroupRow = {
   groupId: string | null;
   groupName: string | null;
   updatedAt: Date;
+  access?: CommitmentGroupAccess;
 };
 
 export function buildCommitmentGroups(
@@ -22,12 +38,15 @@ export function buildCommitmentGroups(
   for (const row of rows) {
     const groupId = row.groupId ?? null;
     const groupName = row.groupName ?? UNGROUPED_NAME;
+    const access =
+      row.access ?? (groupId === null ? DEFAULT_ACCESS : FALLBACK_ACCESS);
 
     if (!grouped.has(groupId)) {
       grouped.set(groupId, {
         id: groupId,
         name: groupName,
         commitments: [],
+        access,
       });
     }
 

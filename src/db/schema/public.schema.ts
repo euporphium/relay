@@ -7,11 +7,12 @@ import {
   pgTable,
   text,
   timestamp,
-  uuid,
   uniqueIndex,
+  uuid,
 } from 'drizzle-orm/pg-core';
 import { calendarIntervalUnits } from '@/domain/calendar/calendarInterval';
 import { commitmentStates } from '@/domain/commitment/commitmentStates';
+import { sharePermissions } from '@/domain/share/sharePermissions';
 import { rescheduleAnchors } from '@/domain/task/rescheduleAnchors';
 import { taskResolutionTypes } from '@/domain/task/taskResolutionTypes';
 import { user } from './auth.schema';
@@ -28,10 +29,9 @@ export const taskResolutionTypeEnum = pgEnum(
   taskResolutionTypes,
 );
 
-export const commitmentStateEnum = pgEnum(
-  'commitment_state',
-  commitmentStates,
-);
+export const commitmentStateEnum = pgEnum('commitment_state', commitmentStates);
+
+export const sharePermissionEnum = pgEnum('share_permission', sharePermissions);
 
 export const tasks = pgTable(
   'tasks',
@@ -117,6 +117,36 @@ export const commitmentGroups = pgTable(
   ],
 );
 
+export const commitmentGroupShares = pgTable(
+  'commitment_group_shares',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+
+    groupId: uuid('group_id')
+      .notNull()
+      .references(() => commitmentGroups.id, { onDelete: 'cascade' }),
+
+    sharedWithUserId: text('shared_with_user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+
+    permission: sharePermissionEnum('permission').notNull().default('view'),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('commitment_group_shares_group_id_idx').on(table.groupId),
+    index('commitment_group_shares_shared_with_user_id_idx').on(
+      table.sharedWithUserId,
+    ),
+    uniqueIndex('commitment_group_shares_group_id_shared_with_user_id_idx').on(
+      table.groupId,
+      table.sharedWithUserId,
+    ),
+  ],
+);
+
 export const commitments = pgTable(
   'commitments',
   {
@@ -158,19 +188,31 @@ export const commitmentGroupsRelations = relations(
       references: [user.id],
     }),
     commitments: many(commitments),
+    shares: many(commitmentGroupShares),
   }),
 );
 
-export const commitmentsRelations = relations(
-  commitments,
+export const commitmentGroupSharesRelations = relations(
+  commitmentGroupShares,
   ({ one }) => ({
-    user: one(user, {
-      fields: [commitments.userId],
-      references: [user.id],
-    }),
     group: one(commitmentGroups, {
-      fields: [commitments.groupId],
+      fields: [commitmentGroupShares.groupId],
       references: [commitmentGroups.id],
+    }),
+    sharedWithUser: one(user, {
+      fields: [commitmentGroupShares.sharedWithUserId],
+      references: [user.id],
     }),
   }),
 );
+
+export const commitmentsRelations = relations(commitments, ({ one }) => ({
+  user: one(user, {
+    fields: [commitments.userId],
+    references: [user.id],
+  }),
+  group: one(commitmentGroups, {
+    fields: [commitments.groupId],
+    references: [commitmentGroups.id],
+  }),
+}));

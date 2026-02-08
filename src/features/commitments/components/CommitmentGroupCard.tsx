@@ -14,12 +14,11 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useEffect, useId, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import type {
-  CommitmentGroup,
-  Commitment,
-} from '@/shared/types/commitment';
+import type { Commitment, CommitmentGroup } from '@/shared/types/commitment';
+import { CommitmentGroupSharePopover } from './CommitmentGroupSharePopover';
 import { CommitmentRow, SortableCommitmentRow } from './CommitmentRow';
 
 type CommitmentGroupCardProps = {
@@ -79,13 +78,16 @@ export function CommitmentGroupCard({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 150, tolerance: 8 },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
 
-  const canRename = group.id !== null;
+  const canEdit = group.access.canEdit;
+  const canRename = group.id !== null && canEdit;
 
   const commitNameChange = async () => {
     if (group.id === null) return;
@@ -142,15 +144,22 @@ export function CommitmentGroupCard({
             {group.commitments.length === 1 ? '' : 's'}
           </p>
         </div>
-        <button
-          type="button"
-          className="shrink-0 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-          aria-expanded={isOpen}
-          aria-controls={contentId}
-          onClick={() => setIsOpen((previous) => !previous)}
-        >
-          {isOpen ? 'Collapse' : 'Expand'}
-        </button>
+        <div className="flex items-center gap-2">
+          {group.id && group.access.isOwner ? (
+            <CommitmentGroupSharePopover groupId={group.id} />
+          ) : null}
+          <Button
+            type="button"
+            size="xs"
+            variant="ghost"
+            className="shrink-0"
+            aria-expanded={isOpen}
+            aria-controls={contentId}
+            onClick={() => setIsOpen((previous) => !previous)}
+          >
+            {isOpen ? 'Collapse' : 'Expand'}
+          </Button>
+        </div>
       </div>
 
       {isOpen ? (
@@ -161,44 +170,56 @@ export function CommitmentGroupCard({
             </p>
           ) : (
             <>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={async ({ active, over }) => {
-                  if (!over || active.id === over.id) return;
-                  const oldIndex = activeOrder.indexOf(String(active.id));
-                  const newIndex = activeOrder.indexOf(String(over.id));
-                  if (oldIndex === -1 || newIndex === -1) return;
+              {canEdit ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={async ({ active, over }) => {
+                    if (!over || active.id === over.id) return;
+                    const oldIndex = activeOrder.indexOf(String(active.id));
+                    const newIndex = activeOrder.indexOf(String(over.id));
+                    if (oldIndex === -1 || newIndex === -1) return;
 
-                  const previous = activeOrder;
-                  const next = arrayMove(activeOrder, oldIndex, newIndex);
-                  setActiveOrder(next);
+                    const previous = activeOrder;
+                    const next = arrayMove(activeOrder, oldIndex, newIndex);
+                    setActiveOrder(next);
 
-                  try {
-                    await onReorder(group.id, next);
-                  } catch {
-                    setActiveOrder(previous);
-                  }
-                }}
-              >
-                <SortableContext
-                  items={activeOrder}
-                  strategy={verticalListSortingStrategy}
+                    try {
+                      await onReorder(group.id, next);
+                    } catch {
+                      setActiveOrder(previous);
+                    }
+                  }}
                 >
-                  {orderedActiveCommitments.map((commitment) => (
-                    <SortableCommitmentRow
-                      key={commitment.id}
-                      commitment={commitment}
-                      onChangeState={onChangeState}
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
+                  <SortableContext
+                    items={activeOrder}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {orderedActiveCommitments.map((commitment) => (
+                      <SortableCommitmentRow
+                        key={commitment.id}
+                        commitment={commitment}
+                        onChangeState={onChangeState}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                orderedActiveCommitments.map((commitment) => (
+                  <CommitmentRow
+                    key={commitment.id}
+                    commitment={commitment}
+                    onChangeState={onChangeState}
+                    canEdit={false}
+                  />
+                ))
+              )}
               {inactiveCommitments.map((commitment) => (
                 <CommitmentRow
                   key={commitment.id}
                   commitment={commitment}
                   onChangeState={onChangeState}
+                  canEdit={canEdit}
                 />
               ))}
             </>
