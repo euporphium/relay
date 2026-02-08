@@ -8,8 +8,10 @@ import {
   text,
   timestamp,
   uuid,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { calendarIntervalUnits } from '@/domain/calendar/calendarInterval';
+import { commitmentStates } from '@/domain/commitment/commitmentStates';
 import { rescheduleAnchors } from '@/domain/task/rescheduleAnchors';
 import { taskResolutionTypes } from '@/domain/task/taskResolutionTypes';
 import { user } from './auth.schema';
@@ -24,6 +26,11 @@ export const intervalUnitEnum = pgEnum('interval_unit', calendarIntervalUnits);
 export const taskResolutionTypeEnum = pgEnum(
   'task_resolution_type',
   taskResolutionTypes,
+);
+
+export const commitmentStateEnum = pgEnum(
+  'commitment_state',
+  commitmentStates,
 );
 
 export const tasks = pgTable(
@@ -86,3 +93,84 @@ export const taskResolutions = pgTable('task_resolutions', {
   /* Snapshot of the scheduled date at completion time */
   scheduledDate: date('scheduled_date').notNull(),
 });
+
+export const commitmentGroups = pgTable(
+  'commitment_groups',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+
+    name: text('name').notNull(),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('commitment_groups_user_id_idx').on(table.userId),
+    uniqueIndex('commitment_groups_user_id_name_idx').on(
+      table.userId,
+      table.name,
+    ),
+  ],
+);
+
+export const commitments = pgTable(
+  'commitments',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+
+    groupId: uuid('group_id').references(() => commitmentGroups.id, {
+      onDelete: 'set null',
+    }),
+
+    title: text('title').notNull(),
+    note: text('note'),
+
+    state: commitmentStateEnum('state').notNull().default('active'),
+    position: integer('position').notNull(),
+
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('commitments_user_id_idx').on(table.userId),
+    index('commitments_group_id_idx').on(table.groupId),
+    index('commitments_group_order_idx').on(
+      table.userId,
+      table.groupId,
+      table.position,
+    ),
+  ],
+);
+
+export const commitmentGroupsRelations = relations(
+  commitmentGroups,
+  ({ one, many }) => ({
+    user: one(user, {
+      fields: [commitmentGroups.userId],
+      references: [user.id],
+    }),
+    commitments: many(commitments),
+  }),
+);
+
+export const commitmentsRelations = relations(
+  commitments,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [commitments.userId],
+      references: [user.id],
+    }),
+    group: one(commitmentGroups, {
+      fields: [commitments.groupId],
+      references: [commitmentGroups.id],
+    }),
+  }),
+);
