@@ -32,91 +32,99 @@ export function CommitmentRow({
   canEdit = true,
 }: CommitmentRowProps) {
   const isActive = commitment.state === 'active';
+  const showDragHandle = canEdit && isActive;
 
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 rounded-lg border p-4',
-        'md:flex-row md:items-center md:gap-4',
+        'flex items-center gap-2 rounded-lg border p-4',
         isDragging && 'opacity-70',
       )}
       {...containerProps}
     >
-      <div className="flex flex-1 flex-col gap-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-sm font-semibold">{commitment.title}</h3>
-          <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-            {stateLabels[commitment.state]}
-          </span>
+      {canEdit ? (
+        showDragHandle ? (
+          <button
+            type="button"
+            aria-label="Reorder commitment"
+            {...dragHandleProps}
+            className={cn(
+              '-ml-1 flex size-11 shrink-0 select-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 touch-manipulation',
+              dragHandleProps?.className,
+            )}
+          >
+            <DotsSixVerticalIcon size={18} weight="bold" />
+          </button>
+        ) : (
+          <div className="size-11 shrink-0" aria-hidden />
+        )
+      ) : null}
+
+      <div className="flex min-w-0 flex-1 flex-col gap-3 md:flex-row md:items-center md:gap-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-semibold">{commitment.title}</h3>
+            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              {stateLabels[commitment.state]}
+            </span>
+          </div>
+          {commitment.note ? (
+            <p className="text-sm text-muted-foreground">{commitment.note}</p>
+          ) : null}
         </div>
-        {commitment.note ? (
-          <p className="text-sm text-muted-foreground">{commitment.note}</p>
+
+        {canEdit ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {isActive ? (
+              <>
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  onClick={() => onEdit(commitment.id)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="secondary"
+                  onClick={() => onChangeState(commitment.id, 'fulfilled')}
+                >
+                  Fulfill
+                </Button>
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => onChangeState(commitment.id, 'released')}
+                >
+                  Release
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="outline"
+                  onClick={() => onEdit(commitment.id)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  type="button"
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => onChangeState(commitment.id, 'active')}
+                >
+                  Reactivate
+                </Button>
+              </>
+            )}
+          </div>
         ) : null}
       </div>
-
-      {canEdit ? (
-        <div className="flex flex-wrap items-center gap-2">
-          {isActive ? (
-            <Button
-              type="button"
-              size="xs"
-              variant="outline"
-              aria-label="Reorder commitment"
-              {...dragHandleProps}
-            >
-              <DotsSixVerticalIcon size={16} />
-            </Button>
-          ) : null}
-
-          {isActive ? (
-            <>
-              <Button
-                type="button"
-                size="xs"
-                variant="outline"
-                onClick={() => onEdit(commitment.id)}
-              >
-                Edit
-              </Button>
-              <Button
-                type="button"
-                size="xs"
-                variant="secondary"
-                onClick={() => onChangeState(commitment.id, 'fulfilled')}
-              >
-                Fulfill
-              </Button>
-              <Button
-                type="button"
-                size="xs"
-                variant="ghost"
-                onClick={() => onChangeState(commitment.id, 'released')}
-              >
-                Release
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                type="button"
-                size="xs"
-                variant="outline"
-                onClick={() => onEdit(commitment.id)}
-              >
-                Edit
-              </Button>
-              <Button
-                type="button"
-                size="xs"
-                variant="ghost"
-                onClick={() => onChangeState(commitment.id, 'active')}
-              >
-                Reactivate
-              </Button>
-            </>
-          )}
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -157,8 +165,7 @@ export function SortableCommitmentRow({
       dragHandleProps={{
         ...attributes,
         ...listeners,
-        className: cn('touch-none select-none'),
-        style: { touchAction: 'none' },
+        className: cn('select-none touch-manipulation'),
       }}
     />
   );
