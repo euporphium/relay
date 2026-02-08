@@ -3,7 +3,6 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { commitmentGroups } from '@/db/schema';
 import { authMiddleware } from '@/server/middleware/auth';
-import type { CommitmentGroupOption } from '@/shared/types/commitment';
 
 export const getCommitmentGroups = createServerFn()
   .middleware([authMiddleware])
