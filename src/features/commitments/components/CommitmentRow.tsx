@@ -165,7 +165,8 @@ export function SortableCommitmentRow({
       dragHandleProps={{
         ...attributes,
         ...listeners,
-        className: cn('select-none touch-manipulation'),
+        className: cn('select-none touch-none'),
+        style: { touchAction: 'none' },
       }}
     />
   );
