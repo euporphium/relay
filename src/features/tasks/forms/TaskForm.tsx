@@ -31,7 +31,7 @@ export const TaskForm = withForm({
   },
   render: ({ form, submitLabel }) => (
     <form
-      className="p-4"
+      className="p-4 max-w-4xl mx-auto"
       onSubmit={async (e) => {
         e.preventDefault();
         await form.handleSubmit();

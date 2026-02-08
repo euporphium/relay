@@ -1,7 +1,7 @@
 import { withForm } from '@/components/form/hooks';
 import { FieldGroup } from '@/components/ui/field';
-import type { CommitmentInput } from '@/shared/validation/commitmentInput.schema';
 import type { CommitmentGroupOption } from '@/shared/types/commitment';
+import type { CommitmentInput } from '@/shared/validation/commitmentInput.schema';
 
 const CUSTOM_GROUP_VALUE = '__custom__';
 const NO_GROUP_VALUE = '__none__';
@@ -27,7 +27,7 @@ export const CommitmentForm = withForm({
 
     return (
       <form
-        className="p-4"
+        className="p-4 max-w-4xl mx-auto"
         onSubmit={async (event) => {
           event.preventDefault();
           await form.handleSubmit();
