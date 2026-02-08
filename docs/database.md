@@ -48,7 +48,7 @@ Implementation: drizzle-orm ^0.45.1 + pg ^8.18.0 (PostgreSQL)
   - Always import `db` from `@/db`; do not create new pools or Drizzle instances.
   - All app queries must be server-side and guarded by `authMiddleware`, then scoped by `userId`.
 - Migrations:
-  - Use drizzle-kit with `drizzle.config.ts` (reads `.env.local` for `DATABASE_URL`).
+  - Use drizzle-kit with `drizzle.config.ts` (reads `.env` for `DATABASE_URL`).
   - Keep schema changes in TypeScript (`src/db/schema/*`), then generate migrations.
 
 ## Common Patterns
@@ -74,7 +74,7 @@ Implementation: drizzle-orm ^0.45.1 + pg ^8.18.0 (PostgreSQL)
 ## Gotchas
 
 - Migrations reflect schema history; do not hand-edit past migrations unless you’re fixing a deployment break and know the consequences.
-- `drizzle.config.ts` uses `.env.local` for migrations; runtime env validation uses `process.env` in `src/env/server.ts`. Keep both in sync.
+- `drizzle.config.ts` uses `.env` for migrations; runtime env validation uses `process.env` in `src/env/server.ts`. Keep both in sync.
 - The `auth` schema is managed by Better Auth’s expectations; changing those table shapes can break authentication.
 - `tasks_active_scheduled_date_idx` depends on `resolved_at IS NULL`. If you change the active/inactive semantics, update the index.
 
