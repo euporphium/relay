@@ -2,8 +2,8 @@ import { createServerFn } from '@tanstack/react-start';
 import { format } from 'date-fns';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
-import { taskInputSchema } from '@/domain/task/taskInput.schema';
 import { authMiddleware } from '@/server/middleware/auth';
+import { taskInputSchema } from '@/shared/validation/taskInput.schema';
 
 export const taskPersistenceSchema = taskInputSchema.transform((v) => ({
   ...v,

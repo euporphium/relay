@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/card';
-import type { TaskForDate } from '@/server/tasks/getTasksForDate';
+import type { TaskForDate } from '@/shared/types/task';
 import { type TaskActions, TaskRow } from './TaskRow';
 
 type TaskListProps = {

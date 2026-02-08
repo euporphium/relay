@@ -15,7 +15,8 @@ Relay is a full-stack web app built around a single vertical slice: authenticate
 
 - **Client UI**: Renders routes, forms, and views. The client does not access the database directly and does not own auth state; it consumes session context and server outputs.
 - **Server Functions**: The only path to persistent data. Server functions validate inputs, enforce auth, and execute domain-aware database operations.
-- **Domain Modules**: Pure, framework-agnostic logic (calendar, task rules, validation schemas). These functions and schemas are shared across client and server to keep rules consistent.
+- **Domain Modules**: Pure, framework-agnostic logic (calendar, task rules). These functions are shared across client and server to keep rules consistent.
+- **Shared Contracts**: DTO types and validation schemas shared by client and server. This layer depends on domain types but never on server or database modules.
 - **Database**: Persistent storage accessed only through the server layer.
 
 ## Client vs Server Responsibilities

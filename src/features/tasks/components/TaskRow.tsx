@@ -1,6 +1,6 @@
 import { CheckIcon, PencilIcon, SkipForwardIcon } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
-import type { TaskForDate } from '@/server/tasks/getTasksForDate';
+import type { TaskForDate } from '@/shared/types/task';
 import { IconButton } from './IconButton';
 import { TaskContent } from './TaskContent';
 

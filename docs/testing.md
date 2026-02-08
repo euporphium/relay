@@ -16,13 +16,15 @@ Implementation: Vitest `3.2.4` + Testing Library (`@testing-library/react` `16.3
 
 ## Key Files
 
-| Path                                                  | Purpose                                                |
-|-------------------------------------------------------|--------------------------------------------------------|
-| `package.json`                                        | Test script (`vitest run`) and testing deps.           |
-| `vite.config.ts`                                      | Vite config that provides the `@` alias used by tests. |
-| `src/domain/calendar/addInterval.test.ts`             | Representative unit test style (pure functions).       |
-| `src/domain/calendar/calculateNextOccurrence.test.ts` | Edge-case heavy unit tests.                            |
-| `src/domain/task/taskInput.schema.test.ts`            | Validation tests using `.parse()` and `.toThrow()`.    |
+| Path                                                   | Purpose                                                |
+|--------------------------------------------------------|--------------------------------------------------------|
+| `package.json`                                         | Test script (`vitest run`) and testing deps.           |
+| `vite.config.ts`                                       | Vite config that provides the `@` alias used by tests. |
+| `src/domain/calendar/addInterval.test.ts`              | Representative unit test style (pure functions).       |
+| `src/domain/calendar/calculateNextOccurrence.test.ts`  | Edge-case heavy unit tests.                            |
+| `src/domain/task/resolveTaskPlan.test.ts`              | Domain orchestration tests (task resolution logic).    |
+| `src/shared/validation/taskInput.schema.test.ts`       | Validation tests using `.parse()` and `.toThrow()`.    |
+| `src/shared/validation/commitmentInput.schema.test.ts` | Validation tests using `.parse()` and `.toThrow()`.    |
 
 ## Conventions
 

@@ -3,15 +3,10 @@ import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { taskResolutions, tasks } from '@/db/schema';
-import { calculateNextOccurrence } from '@/domain/calendar/calculateNextOccurrence';
-import { getRescheduleRule } from '@/domain/calendar/rescheduleRule';
+import { buildResolveTaskPlan } from '@/domain/task/resolveTaskPlan';
 import { taskResolutionTypes } from '@/domain/task/taskResolutionTypes';
 import { authMiddleware } from '@/server/middleware/auth';
-
-export type ResolveTaskResult = {
-  resolutionId: string;
-  nextTask?: { id: string; scheduledDate: string };
-};
+import type { ResolveTaskResult } from '@/shared/types/task';
 
 export const resolveTask = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
@@ -43,54 +38,29 @@ export const resolveTask = createServerFn({ method: 'POST' })
       }
 
       const now = new Date();
+      const plan = buildResolveTaskPlan({
+        task,
+        resolutionType,
+        resolvedDate,
+        now,
+      });
 
       // 2. Create the resolution record
       const [resolution] = await tx
         .insert(taskResolutions)
-        .values({
-          taskId: task.id,
-          resolutionType,
-          resolvedAt: now,
-          resolvedDate,
-          scheduledDate: task.scheduledDate,
-        })
+        .values(plan.resolutionRecord)
         .returning({ id: taskResolutions.id });
 
       // 3. Resolve the task
-      await tx
-        .update(tasks)
-        .set({
-          resolvedAt: now,
-          updatedAt: now,
-        })
-        .where(eq(tasks.id, id));
+      await tx.update(tasks).set(plan.taskUpdate).where(eq(tasks.id, id));
 
-      const rescheduleRule = getRescheduleRule(task);
-
-      if (!rescheduleRule) {
+      if (!plan.nextTask) {
         return { resolutionId: resolution.id };
       }
 
-      const nextScheduledDate = calculateNextOccurrence({
-        scheduledDate: task.scheduledDate,
-        completionDate: resolvedDate,
-        reschedule: rescheduleRule,
-      });
-
       const [nextTask] = await tx
         .insert(tasks)
-        .values({
-          userId,
-          name: task.name,
-          note: task.note,
-          scheduledDate: nextScheduledDate,
-          previewLeadTime: task.previewLeadTime,
-          previewUnit: task.previewUnit,
-          rescheduleEvery: rescheduleRule.every,
-          rescheduleUnit: rescheduleRule.unit,
-          rescheduleFrom: rescheduleRule.from,
-          resolvedAt: null,
-        })
+        .values(plan.nextTask)
         .returning({ id: tasks.id, scheduledDate: tasks.scheduledDate });
 
       return { resolutionId: resolution.id, nextTask };

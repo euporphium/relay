@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { commitmentGroups, commitments } from '@/db/schema';
-import { commitmentInputSchema } from '@/domain/commitment/commitmentInput.schema';
+import { commitmentInputSchema } from '@/shared/validation/commitmentInput.schema';
 import { authMiddleware } from '@/server/middleware/auth';
 
 export const commitmentPersistenceSchema = commitmentInputSchema.transform(
@@ -63,7 +63,9 @@ export const createCommitment = createServerFn({ method: 'POST' })
         .where(
           and(
             eq(commitments.userId, userId),
-            groupId ? eq(commitments.groupId, groupId) : isNull(commitments.groupId),
+            groupId
+              ? eq(commitments.groupId, groupId)
+              : isNull(commitments.groupId),
           ),
         );
 

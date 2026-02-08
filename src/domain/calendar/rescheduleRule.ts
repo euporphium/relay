@@ -1,5 +1,5 @@
-import type { CalendarIntervalUnit } from './calendarInterval';
 import type { RescheduleAnchor } from '@/domain/task/rescheduleAnchors';
+import type { CalendarIntervalUnit } from './calendarInterval';
 
 export type RescheduleFields = {
   rescheduleEvery: number | null;

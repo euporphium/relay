@@ -1,0 +1,22 @@
+import type { CommitmentState } from '@/domain/commitment/commitmentStates';
+
+export type Commitment = {
+  id: string;
+  title: string;
+  note: string | null;
+  state: CommitmentState;
+  position: number;
+  groupId: string | null;
+  updatedAt: Date;
+};
+
+export type CommitmentGroup = {
+  id: string | null;
+  name: string;
+  commitments: Commitment[];
+};
+
+export type CommitmentGroupOption = {
+  id: string;
+  name: string;
+};

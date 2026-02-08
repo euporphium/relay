@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
+import { CommitmentForm } from '@/features/commitments/forms/CommitmentForm';
 import {
   type CommitmentInput,
   commitmentInputSchema,
-} from '@/domain/commitment/commitmentInput.schema';
-import { CommitmentForm } from '@/features/commitments/forms/CommitmentForm';
+} from '@/shared/validation/commitmentInput.schema';
 import { createCommitment } from '@/server/commitments/createCommitment';
 import { getCommitmentGroups } from '@/server/commitments/getCommitmentGroups';
 

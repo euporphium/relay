@@ -4,13 +4,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { tasks } from '@/db/schema';
 import { authMiddleware } from '@/server/middleware/auth';
-
-type TaskExtras = {
-  previewStartDate: Date;
-  status: 'active' | 'upcoming';
-};
-
-export type TaskForDate = typeof tasks.$inferSelect & TaskExtras;
+import type { TaskForDate } from '@/shared/types/task';
 
 export const getTasksForDate = createServerFn()
   .middleware([authMiddleware])

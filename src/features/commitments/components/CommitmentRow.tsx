@@ -4,17 +4,17 @@ import { DotsSixVerticalIcon } from '@phosphor-icons/react';
 import type { ComponentPropsWithoutRef, ComponentPropsWithRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { CommitmentItem } from '@/server/commitments/getCommitments';
+import type { Commitment } from '@/shared/types/commitment';
 
-const stateLabels: Record<CommitmentItem['state'], string> = {
+const stateLabels: Record<Commitment['state'], string> = {
   active: 'Active',
   fulfilled: 'Fulfilled',
   released: 'Released',
 };
 
 type CommitmentRowProps = {
-  commitment: CommitmentItem;
-  onChangeState: (id: string, state: CommitmentItem['state']) => void;
+  commitment: Commitment;
+  onChangeState: (id: string, state: Commitment['state']) => void;
   containerProps?: ComponentPropsWithRef<'div'>;
   dragHandleProps?: ComponentPropsWithoutRef<'button'>;
   isDragging?: boolean;
@@ -98,8 +98,8 @@ export function CommitmentRow({
 }
 
 type SortableCommitmentRowProps = {
-  commitment: CommitmentItem;
-  onChangeState: (id: string, state: CommitmentItem['state']) => void;
+  commitment: Commitment;
+  onChangeState: (id: string, state: Commitment['state']) => void;
 };
 
 export function SortableCommitmentRow({

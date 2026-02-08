@@ -15,5 +15,3 @@ export const getTask = createServerFn()
       where: and(eq(tasks.id, id), eq(tasks.userId, userId)),
     });
   });
-
-export type Task = Awaited<ReturnType<typeof getTask>>;

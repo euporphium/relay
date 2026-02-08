@@ -18,8 +18,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import type {
   CommitmentGroup,
-  CommitmentItem,
-} from '@/server/commitments/getCommitments';
+  Commitment,
+} from '@/shared/types/commitment';
 import { CommitmentRow, SortableCommitmentRow } from './CommitmentRow';
 
 type CommitmentGroupCardProps = {
@@ -75,7 +75,7 @@ export function CommitmentGroupCard({
 
   const orderedActiveCommitments = activeOrder
     .map((id) => activeById.get(id))
-    .filter((commitment): commitment is CommitmentItem => Boolean(commitment));
+    .filter((commitment): commitment is Commitment => Boolean(commitment));
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),

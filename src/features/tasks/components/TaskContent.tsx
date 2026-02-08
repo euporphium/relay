@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import type { TaskForDate } from '@/server/tasks/getTasksForDate';
+import type { TaskForDate } from '@/shared/types/task';
 
 type TaskContentProps = {
   task: TaskForDate;

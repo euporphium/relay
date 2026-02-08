@@ -1,7 +1,7 @@
 import { withForm } from '@/components/form/hooks';
 import { FieldGroup } from '@/components/ui/field';
-import type { CommitmentInput } from '@/domain/commitment/commitmentInput.schema';
-import type { CommitmentGroupOption } from '@/server/commitments/getCommitmentGroups';
+import type { CommitmentInput } from '@/shared/validation/commitmentInput.schema';
+import type { CommitmentGroupOption } from '@/shared/types/commitment';
 
 const CUSTOM_GROUP_VALUE = '__custom__';
 const NO_GROUP_VALUE = '__none__';
@@ -47,44 +47,44 @@ export const CommitmentForm = withForm({
             )}
           </form.AppField>
 
-        <form.Subscribe selector={(state) => state.values.groupSelection}>
-          {(groupSelection) => (
-            <>
-              <form.AppField name="groupSelection">
-                {(field) => (
-                  <field.Select
-                    label="Group"
-                    description="Optional. Choose an existing group or create a new one."
-                    options={options}
-                    placeholder="No group"
-                    value={groupSelection ?? NO_GROUP_VALUE}
-                    onValueChange={(value) => {
-                      if (value === NO_GROUP_VALUE) {
-                        form.setFieldValue('groupId', undefined);
+          <form.Subscribe selector={(state) => state.values.groupSelection}>
+            {(groupSelection) => (
+              <>
+                <form.AppField name="groupSelection">
+                  {(field) => (
+                    <field.Select
+                      label="Group"
+                      description="Optional. Choose an existing group or create a new one."
+                      options={options}
+                      placeholder="No group"
+                      value={groupSelection ?? NO_GROUP_VALUE}
+                      onValueChange={(value) => {
+                        if (value === NO_GROUP_VALUE) {
+                          form.setFieldValue('groupId', undefined);
+                          form.setFieldValue('groupName', '');
+                          return;
+                        }
+
+                        if (value === CUSTOM_GROUP_VALUE) {
+                          form.setFieldValue('groupId', undefined);
+                          return;
+                        }
+
+                        form.setFieldValue('groupId', value);
                         form.setFieldValue('groupName', '');
-                        return;
-                      }
-
-                      if (value === CUSTOM_GROUP_VALUE) {
-                        form.setFieldValue('groupId', undefined);
-                        return;
-                      }
-
-                      form.setFieldValue('groupId', value);
-                      form.setFieldValue('groupName', '');
-                    }}
-                  />
-                )}
-              </form.AppField>
-
-              {groupSelection === CUSTOM_GROUP_VALUE && (
-                <form.AppField name="groupName">
-                  {(field) => <field.Input label="New Group Name" />}
+                      }}
+                    />
+                  )}
                 </form.AppField>
-              )}
-            </>
-          )}
-        </form.Subscribe>
+
+                {groupSelection === CUSTOM_GROUP_VALUE && (
+                  <form.AppField name="groupName">
+                    {(field) => <field.Input label="New Group Name" />}
+                  </form.AppField>
+                )}
+              </>
+            )}
+          </form.Subscribe>
 
           <form.AppForm>
             <form.SubmitButton label={submitLabel} />

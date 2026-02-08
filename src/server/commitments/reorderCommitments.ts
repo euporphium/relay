@@ -3,6 +3,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { commitments } from '@/db/schema';
+import { validateCommitmentReorder } from '@/domain/commitment/validateCommitmentReorder';
 import { authMiddleware } from '@/server/middleware/auth';
 
 const reorderCommitmentsSchema = z.object({
@@ -29,19 +30,10 @@ export const reorderCommitments = createServerFn({ method: 'POST' })
         ),
       });
 
-      const activeById = new Map(rows.map((row) => [row.id, row]));
-
-      if (data.orderedIds.length !== rows.length) {
-        throw new Error('Commitment mismatch while reordering');
-      }
-
-      if (new Set(data.orderedIds).size !== data.orderedIds.length) {
-        throw new Error('Commitment mismatch while reordering');
-      }
-
-      if (data.orderedIds.some((id) => !activeById.has(id))) {
-        throw new Error('Commitment mismatch while reordering');
-      }
+      validateCommitmentReorder({
+        orderedIds: data.orderedIds,
+        activeIds: rows.map((row) => row.id),
+      });
 
       const now = new Date();
 

@@ -10,11 +10,9 @@ import { DayNavigator } from '@/features/calendar/DayNavigator';
 import { TaskList } from '@/features/tasks/components/TaskList';
 import { Route as TasksEditRoute } from '@/routes/tasks/$taskId';
 import { Route as TasksCreateRoute } from '@/routes/tasks/create';
+import type { ResolveTaskResult } from '@/shared/types/task';
 import { getTasksForDate } from '@/server/tasks/getTasksForDate';
-import {
-  type ResolveTaskResult,
-  resolveTask,
-} from '@/server/tasks/resolveTask';
+import { resolveTask } from '@/server/tasks/resolveTask';
 import { undoTaskResolution } from '@/server/tasks/undoTaskResolution';
 
 export const Route = createFileRoute('/tasks/')({

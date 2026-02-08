@@ -3,6 +3,7 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { commitments } from '@/db/schema';
+import { buildCommitmentStateUpdatePlan } from '@/domain/commitment/buildCommitmentStateUpdatePlan';
 import { commitmentStates } from '@/domain/commitment/commitmentStates';
 import { authMiddleware } from '@/server/middleware/auth';
 
@@ -26,13 +27,18 @@ export const updateCommitmentState = createServerFn({ method: 'POST' })
         throw new Error('Commitment not found');
       }
 
-      if (existing.state === data.state) {
+      const now = new Date();
+      let plan = buildCommitmentStateUpdatePlan({
+        currentState: existing.state,
+        nextState: data.state,
+        now,
+      });
+
+      if (!plan.shouldUpdate || !plan.update) {
         return;
       }
 
-      let nextPosition: number | undefined;
-
-      if (data.state === 'active') {
+      if (plan.needsPosition) {
         const groupFilter = existing.groupId
           ? eq(commitments.groupId, existing.groupId)
           : isNull(commitments.groupId);
@@ -50,16 +56,23 @@ export const updateCommitmentState = createServerFn({ method: 'POST' })
             ),
           );
 
-        nextPosition = (positionRow?.max ?? 0) + 1;
+        const nextPosition = (positionRow?.max ?? 0) + 1;
+
+        plan = buildCommitmentStateUpdatePlan({
+          currentState: existing.state,
+          nextState: data.state,
+          now,
+          nextPosition,
+        });
+      }
+
+      if (!plan.update) {
+        return;
       }
 
       await tx
         .update(commitments)
-        .set({
-          state: data.state,
-          updatedAt: new Date(),
-          ...(nextPosition ? { position: nextPosition } : {}),
-        })
+        .set(plan.update)
         .where(eq(commitments.id, existing.id));
     });
   });

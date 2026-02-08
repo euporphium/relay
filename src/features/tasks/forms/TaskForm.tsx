@@ -12,11 +12,11 @@ import {
   FieldTitle,
 } from '@/components/ui/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { getFieldValidator } from '@/lib/utils';
 import {
   type TaskInput,
   taskInputSchema,
-} from '@/domain/task/taskInput.schema';
-import { getFieldValidator } from '@/lib/utils';
+} from '@/shared/validation/taskInput.schema';
 
 export const TaskForm = withForm({
   defaultValues: {
