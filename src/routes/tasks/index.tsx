@@ -114,7 +114,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 md:py-12 flex flex-col gap-6">
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-4 md:py-12 flex flex-col gap-6">
       <header className="flex flex-col items-center gap-3 rounded-xl bg-muted/30 px-4 py-3">
         <DayNavigator day={day} />
       </header>

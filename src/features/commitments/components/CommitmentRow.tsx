@@ -126,7 +126,12 @@ export function SortableCommitmentRow({
       onChangeState={onChangeState}
       isDragging={isDragging}
       containerProps={{ ref: setNodeRef, style }}
-      dragHandleProps={{ ...attributes, ...listeners }}
+      dragHandleProps={{
+        ...attributes,
+        ...listeners,
+        className: cn('touch-none select-none'),
+        style: { touchAction: 'none' },
+      }}
     />
   );
 }
