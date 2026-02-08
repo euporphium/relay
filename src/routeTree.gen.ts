@@ -19,6 +19,7 @@ import { Route as CommitmentsIndexRouteImport } from './routes/commitments/index
 import { Route as TasksCreateRouteImport } from './routes/tasks/create'
 import { Route as TasksTaskIdRouteImport } from './routes/tasks/$taskId'
 import { Route as CommitmentsCreateRouteImport } from './routes/commitments/create'
+import { Route as CommitmentsCommitmentIdRouteImport } from './routes/commitments/$commitmentId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const TasksRoute = TasksRouteImport.update({
@@ -71,6 +72,11 @@ const CommitmentsCreateRoute = CommitmentsCreateRouteImport.update({
   path: '/create',
   getParentRoute: () => CommitmentsRoute,
 } as any)
+const CommitmentsCommitmentIdRoute = CommitmentsCommitmentIdRouteImport.update({
+  id: '/$commitmentId',
+  path: '/$commitmentId',
+  getParentRoute: () => CommitmentsRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/tasks': typeof TasksRouteWithChildren
+  '/commitments/$commitmentId': typeof CommitmentsCommitmentIdRoute
   '/commitments/create': typeof CommitmentsCreateRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/create': typeof TasksCreateRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/commitments/$commitmentId': typeof CommitmentsCommitmentIdRoute
   '/commitments/create': typeof CommitmentsCreateRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/create': typeof TasksCreateRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/tasks': typeof TasksRouteWithChildren
+  '/commitments/$commitmentId': typeof CommitmentsCommitmentIdRoute
   '/commitments/create': typeof CommitmentsCreateRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/create': typeof TasksCreateRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/tasks'
+    | '/commitments/$commitmentId'
     | '/commitments/create'
     | '/tasks/$taskId'
     | '/tasks/create'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
+    | '/commitments/$commitmentId'
     | '/commitments/create'
     | '/tasks/$taskId'
     | '/tasks/create'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/tasks'
+    | '/commitments/$commitmentId'
     | '/commitments/create'
     | '/tasks/$taskId'
     | '/tasks/create'
@@ -236,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommitmentsCreateRouteImport
       parentRoute: typeof CommitmentsRoute
     }
+    '/commitments/$commitmentId': {
+      id: '/commitments/$commitmentId'
+      path: '/$commitmentId'
+      fullPath: '/commitments/$commitmentId'
+      preLoaderRoute: typeof CommitmentsCommitmentIdRouteImport
+      parentRoute: typeof CommitmentsRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -247,11 +266,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface CommitmentsRouteChildren {
+  CommitmentsCommitmentIdRoute: typeof CommitmentsCommitmentIdRoute
   CommitmentsCreateRoute: typeof CommitmentsCreateRoute
   CommitmentsIndexRoute: typeof CommitmentsIndexRoute
 }
 
 const CommitmentsRouteChildren: CommitmentsRouteChildren = {
+  CommitmentsCommitmentIdRoute: CommitmentsCommitmentIdRoute,
   CommitmentsCreateRoute: CommitmentsCreateRoute,
   CommitmentsIndexRoute: CommitmentsIndexRoute,
 }

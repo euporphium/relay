@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import type { CommitmentState } from '@/domain/commitment/commitmentStates';
 import { CommitmentGroupCard } from '@/features/commitments/components/CommitmentGroupCard';
+import { Route as CommitmentsEditRoute } from '@/routes/commitments/$commitmentId';
 import { Route as CommitmentsCreateRoute } from '@/routes/commitments/create';
 import { getCommitments } from '@/server/commitments/getCommitments';
 import { reorderCommitments } from '@/server/commitments/reorderCommitments';
@@ -52,6 +53,14 @@ function RouteComponent() {
     }
   }
 
+  function handleEdit(id: string) {
+    navigate({
+      to: CommitmentsEditRoute.to,
+      params: { commitmentId: id },
+      search: { returnTo: location.pathname + location.search },
+    });
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-12 flex flex-col gap-6">
       <header className="flex flex-col gap-3 rounded-xl bg-muted/30 px-4 py-3">
@@ -86,6 +95,7 @@ function RouteComponent() {
             onReorder={handleReorder}
             onRename={handleRenameGroup}
             onChangeState={handleStateChange}
+            onEdit={handleEdit}
           />
         ))
       )}

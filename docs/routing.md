@@ -24,19 +24,20 @@ Not covered:
 
 ## Key Files
 
-| Path                                | Purpose                                                           |
-|-------------------------------------|-------------------------------------------------------------------|
-| `src/router.tsx`                    | Router setup (`getRouter()`), `routeTree` wiring, default context |
-| `src/routes/__root.tsx`             | Document shell, global providers, session context, root error UI  |
-| `src/routes/index.tsx`              | `/` redirect to `/tasks`                                          |
-| `src/routes/tasks.tsx`              | `/tasks` layout + auth gating                                     |
-| `src/routes/tasks/index.tsx`        | `/tasks/` list, search param `date`, loader + loaderDeps          |
-| `src/routes/tasks/create.tsx`       | `/tasks/create`, `returnTo` search param                          |
-| `src/routes/tasks/$taskId.tsx`      | `/tasks/:taskId`, loader + `notFound`                             |
-| `src/routes/commitments.tsx`        | `/commitments` layout + auth gating                               |
-| `src/routes/commitments/index.tsx`  | `/commitments/` list, loader                                      |
-| `src/routes/commitments/create.tsx` | `/commitments/create`, `returnTo` search param                    |
-| `src/routes/api/auth/$.ts`          | `/api/auth/*` server handlers                                     |
+| Path                                       | Purpose                                                           |
+|--------------------------------------------|-------------------------------------------------------------------|
+| `src/router.tsx`                           | Router setup (`getRouter()`), `routeTree` wiring, default context |
+| `src/routes/__root.tsx`                    | Document shell, global providers, session context, root error UI  |
+| `src/routes/index.tsx`                     | `/` redirect to `/tasks`                                          |
+| `src/routes/tasks.tsx`                     | `/tasks` layout + auth gating                                     |
+| `src/routes/tasks/index.tsx`               | `/tasks/` list, search param `date`, loader + loaderDeps          |
+| `src/routes/tasks/create.tsx`              | `/tasks/create`, `returnTo` search param                          |
+| `src/routes/tasks/$taskId.tsx`             | `/tasks/:taskId`, loader + `notFound`                             |
+| `src/routes/commitments.tsx`               | `/commitments` layout + auth gating                               |
+| `src/routes/commitments/index.tsx`         | `/commitments/` list, loader                                      |
+| `src/routes/commitments/create.tsx`        | `/commitments/create`, `returnTo` search param                    |
+| `src/routes/commitments/$commitmentId.tsx` | `/commitments/:commitmentId`, loader + `notFound`                 |
+| `src/routes/api/auth/$.ts`                 | `/api/auth/*` server handlers                                     |
 
 ## Conventions
 

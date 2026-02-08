@@ -25,6 +25,7 @@ type CommitmentGroupCardProps = {
   group: CommitmentGroup;
   onReorder: (groupId: string | null, orderedIds: string[]) => Promise<void>;
   onRename: (groupId: string, name: string) => Promise<void>;
+  onEdit: (id: string) => void;
   onChangeState: (
     id: string,
     state: CommitmentGroup['commitments'][number]['state'],
@@ -35,6 +36,7 @@ export function CommitmentGroupCard({
   group,
   onReorder,
   onRename,
+  onEdit,
   onChangeState,
 }: CommitmentGroupCardProps) {
   const activeCommitments = group.commitments.filter(
@@ -200,6 +202,7 @@ export function CommitmentGroupCard({
                         key={commitment.id}
                         commitment={commitment}
                         onChangeState={onChangeState}
+                        onEdit={onEdit}
                       />
                     ))}
                   </SortableContext>
@@ -210,6 +213,7 @@ export function CommitmentGroupCard({
                     key={commitment.id}
                     commitment={commitment}
                     onChangeState={onChangeState}
+                    onEdit={onEdit}
                     canEdit={false}
                   />
                 ))
@@ -219,6 +223,7 @@ export function CommitmentGroupCard({
                   key={commitment.id}
                   commitment={commitment}
                   onChangeState={onChangeState}
+                  onEdit={onEdit}
                   canEdit={canEdit}
                 />
               ))}

@@ -15,6 +15,7 @@ const stateLabels: Record<Commitment['state'], string> = {
 type CommitmentRowProps = {
   commitment: Commitment;
   onChangeState: (id: string, state: Commitment['state']) => void;
+  onEdit: (id: string) => void;
   containerProps?: ComponentPropsWithRef<'div'>;
   dragHandleProps?: ComponentPropsWithoutRef<'button'>;
   isDragging?: boolean;
@@ -24,6 +25,7 @@ type CommitmentRowProps = {
 export function CommitmentRow({
   commitment,
   onChangeState,
+  onEdit,
   containerProps,
   dragHandleProps,
   isDragging,
@@ -71,6 +73,14 @@ export function CommitmentRow({
               <Button
                 type="button"
                 size="xs"
+                variant="outline"
+                onClick={() => onEdit(commitment.id)}
+              >
+                Edit
+              </Button>
+              <Button
+                type="button"
+                size="xs"
                 variant="secondary"
                 onClick={() => onChangeState(commitment.id, 'fulfilled')}
               >
@@ -86,14 +96,24 @@ export function CommitmentRow({
               </Button>
             </>
           ) : (
-            <Button
-              type="button"
-              size="xs"
-              variant="ghost"
-              onClick={() => onChangeState(commitment.id, 'active')}
-            >
-              Reactivate
-            </Button>
+            <>
+              <Button
+                type="button"
+                size="xs"
+                variant="outline"
+                onClick={() => onEdit(commitment.id)}
+              >
+                Edit
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                variant="ghost"
+                onClick={() => onChangeState(commitment.id, 'active')}
+              >
+                Reactivate
+              </Button>
+            </>
           )}
         </div>
       ) : null}
@@ -104,11 +124,13 @@ export function CommitmentRow({
 type SortableCommitmentRowProps = {
   commitment: Commitment;
   onChangeState: (id: string, state: Commitment['state']) => void;
+  onEdit: (id: string) => void;
 };
 
 export function SortableCommitmentRow({
   commitment,
   onChangeState,
+  onEdit,
 }: SortableCommitmentRowProps) {
   const {
     attributes,
@@ -128,6 +150,7 @@ export function SortableCommitmentRow({
     <CommitmentRow
       commitment={commitment}
       onChangeState={onChangeState}
+      onEdit={onEdit}
       isDragging={isDragging}
       canEdit
       containerProps={{ ref: setNodeRef, style }}
