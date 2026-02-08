@@ -1,21 +1,24 @@
 import {
+  closestCenter,
   DndContext,
   KeyboardSensor,
   PointerSensor,
-  closestCenter,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
 import {
-  SortableContext,
   arrayMove,
+  SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import type { CommitmentGroup } from '@/server/commitments/getCommitments';
+import type {
+  CommitmentGroup,
+  CommitmentItem,
+} from '@/server/commitments/getCommitments';
 import { CommitmentRow, SortableCommitmentRow } from './CommitmentRow';
 
 type CommitmentGroupCardProps = {
@@ -34,14 +37,13 @@ export function CommitmentGroupCard({
   onRename,
   onChangeState,
 }: CommitmentGroupCardProps) {
-  const activeCommitments = useMemo(
-    () => group.commitments.filter((commitment) => commitment.state === 'active'),
-    [group.commitments],
+  const activeCommitments = group.commitments.filter(
+    (commitment) => commitment.state === 'active',
   );
-  const inactiveCommitments = useMemo(
-    () => group.commitments.filter((commitment) => commitment.state !== 'active'),
-    [group.commitments],
+  const inactiveCommitments = group.commitments.filter(
+    (commitment) => commitment.state !== 'active',
   );
+
   const [activeOrder, setActiveOrder] = useState<string[]>(() =>
     activeCommitments.map((commitment) => commitment.id),
   );
@@ -66,37 +68,33 @@ export function CommitmentGroupCard({
     }
   }, [isEditing]);
 
-  const activeById = useMemo(
-    () => new Map(activeCommitments.map((commitment) => [commitment.id, commitment])),
-    [activeCommitments],
+  const activeById = new Map(
+    activeCommitments.map((commitment) => [commitment.id, commitment]),
   );
 
-  const orderedActiveCommitments = useMemo(
-    () =>
-      activeOrder
-        .map((id) => activeById.get(id))
-        .filter((commitment): commitment is CommitmentGroup['commitments'][number] =>
-          Boolean(commitment),
-        ),
-    [activeOrder, activeById],
-  );
+  const orderedActiveCommitments = activeOrder
+    .map((id) => activeById.get(id))
+    .filter((commitment): commitment is CommitmentItem => Boolean(commitment));
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const canRename = group.id !== null;
 
   const commitNameChange = async () => {
-    if (!canRename) return;
+    if (group.id === null) return;
+    const groupId = group.id;
     const nextName = draftName.trim();
     setIsEditing(false);
     if (!nextName || nextName === group.name) {
       setDraftName(group.name);
       return;
     }
-    await onRename(group.id, nextName);
+    await onRename(groupId, nextName);
   };
 
   return (
@@ -154,7 +152,7 @@ export function CommitmentGroupCard({
       </div>
 
       {isOpen ? (
-        <div className="space-y-3" id={contentId} role="region">
+        <div className="space-y-3" id={contentId}>
           {group.commitments.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No commitments in this group
