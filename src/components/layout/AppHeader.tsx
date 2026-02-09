@@ -88,7 +88,10 @@ export function AppHeader({ userName }: AppHeaderProps) {
                 <CaretDownIcon className="size-4 opacity-70" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72">
+            <DropdownMenuContent
+              align="end"
+              className="w-fit min-w-0 max-w-[min(90vw,16rem)] sm:max-w-[18rem]"
+            >
               <DropdownMenuLabel className="px-3 py-2">
                 <p className="text-xs text-muted-foreground">Signed in as</p>
                 <p className="text-sm font-medium truncate">{userName}</p>
@@ -99,7 +102,7 @@ export function AppHeader({ userName }: AppHeaderProps) {
                   <activeThemeOption.Icon className="size-4" />
                   {activeThemeOption.label}
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
+                <DropdownMenuSubContent align="start" side="left">
                   <DropdownMenuRadioGroup
                     value={userTheme}
                     onValueChange={(value) => setTheme(value as UserTheme)}
