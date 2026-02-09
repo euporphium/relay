@@ -102,7 +102,7 @@ export function AppHeader({ userName }: AppHeaderProps) {
                   <activeThemeOption.Icon className="size-4" />
                   {activeThemeOption.label}
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent align="start" side="left">
+                <DropdownMenuSubContent>
                   <DropdownMenuRadioGroup
                     value={userTheme}
                     onValueChange={(value) => setTheme(value as UserTheme)}
