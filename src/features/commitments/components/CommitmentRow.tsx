@@ -63,13 +63,17 @@ export function CommitmentRow({
       <div className="flex min-w-0 flex-1 flex-col gap-3 md:flex-row md:items-center md:gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold">{commitment.title}</h3>
+            <h3 className="min-w-0 break-words text-sm font-semibold">
+              {commitment.title}
+            </h3>
             <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
               {stateLabels[commitment.state]}
             </span>
           </div>
           {commitment.note ? (
-            <p className="text-sm text-muted-foreground">{commitment.note}</p>
+            <p className="min-w-0 break-words text-sm text-muted-foreground">
+              {commitment.note}
+            </p>
           ) : null}
         </div>
 
