@@ -5,6 +5,7 @@ import {
   commitmentGroupShares,
   commitmentGroups,
   commitments,
+  user,
 } from '@/db/schema';
 import { buildCommitmentGroups } from '@/domain/commitment/buildCommitmentGroups';
 import { authMiddleware } from '@/server/middleware/auth';
@@ -19,9 +20,11 @@ export const getCommitments = createServerFn()
         id: commitmentGroups.id,
         name: commitmentGroups.name,
         ownerId: commitmentGroups.userId,
+        ownerName: user.name,
         permission: commitmentGroupShares.permission,
       })
       .from(commitmentGroups)
+      .innerJoin(user, eq(user.id, commitmentGroups.userId))
       .leftJoin(
         commitmentGroupShares,
         and(
@@ -49,6 +52,7 @@ export const getCommitments = createServerFn()
               isOwner,
               canEdit: isOwner || permission === 'edit',
               permission,
+              sharedByName: isOwner ? null : row.ownerName,
             },
           ] as const,
         ];

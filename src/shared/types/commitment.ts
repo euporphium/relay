@@ -15,6 +15,7 @@ export type CommitmentGroupAccess = {
   isOwner: boolean;
   canEdit: boolean;
   permission: SharePermission;
+  sharedByName: string | null;
 };
 
 export type CommitmentGroup = {

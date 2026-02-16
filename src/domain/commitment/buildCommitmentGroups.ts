@@ -10,12 +10,14 @@ const DEFAULT_ACCESS: CommitmentGroupAccess = {
   isOwner: true,
   canEdit: true,
   permission: 'edit',
+  sharedByName: null,
 };
 
 const FALLBACK_ACCESS: CommitmentGroupAccess = {
   isOwner: false,
   canEdit: false,
   permission: 'view',
+  sharedByName: null,
 };
 
 export type CommitmentGroupRow = {

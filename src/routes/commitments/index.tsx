@@ -123,7 +123,9 @@ function RouteComponent() {
                 <div className="flex flex-col">
                   <p className="text-sm font-medium">{invitation.groupName}</p>
                   <p className="text-xs text-muted-foreground">
-                    From {invitation.ownerName} ({invitation.ownerEmail}) •{' '}
+                    From {invitation.ownerName} ({invitation.ownerEmail})
+                  </p>
+                  <p className="text-xs text-muted-foreground">
                     {invitation.permission === 'edit' ? 'Can edit' : 'Can view'}
                   </p>
                 </div>

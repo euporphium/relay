@@ -1,4 +1,4 @@
-import { XIcon } from '@phosphor-icons/react';
+import { ShareIcon, XIcon } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -99,8 +99,13 @@ export function CommitmentGroupSharePopover({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button type="button" size="xs" variant="outline">
-          Share
+        <Button
+          type="button"
+          size="icon-sm"
+          variant="ghost"
+          aria-label="Share group"
+        >
+          <ShareIcon size={16} />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80">

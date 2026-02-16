@@ -1,3 +1,4 @@
+import { UserMinusIcon } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -62,8 +63,14 @@ export function ShareRow({
             ))}
           </SelectContent>
         </Select>
-        <Button type="button" size="xs" variant="ghost" onClick={onRemove}>
-          Revoke
+        <Button
+          type="button"
+          size="icon-xs"
+          variant="ghost"
+          onClick={onRemove}
+          aria-label={`Remove ${share.email} from shared group`}
+        >
+          <UserMinusIcon size={12} />
         </Button>
       </div>
     </div>
