@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { commitmentGroupShares, commitmentGroups } from '@/db/schema';
@@ -7,7 +7,7 @@ import { authMiddleware } from '@/server/middleware/auth';
 
 const removeCommitmentGroupShareSchema = z.object({
   groupId: z.uuid(),
-  sharedWithUserId: z.string(),
+  shareId: z.uuid(),
 });
 
 export const removeCommitmentGroupShare = createServerFn({ method: 'POST' })
@@ -15,6 +15,7 @@ export const removeCommitmentGroupShare = createServerFn({ method: 'POST' })
   .inputValidator(removeCommitmentGroupShareSchema)
   .handler(async ({ data, context }) => {
     const { userId } = context;
+    const now = new Date();
 
     const [group] = await db
       .select({ ownerId: commitmentGroups.userId })
@@ -26,11 +27,18 @@ export const removeCommitmentGroupShare = createServerFn({ method: 'POST' })
     }
 
     await db
-      .delete(commitmentGroupShares)
+      .update(commitmentGroupShares)
+      .set({
+        status: 'revoked',
+        revokedAt: now,
+        respondedAt: now,
+        updatedAt: now,
+      })
       .where(
         and(
           eq(commitmentGroupShares.groupId, data.groupId),
-          eq(commitmentGroupShares.sharedWithUserId, data.sharedWithUserId),
+          eq(commitmentGroupShares.id, data.shareId),
+          inArray(commitmentGroupShares.status, ['pending', 'accepted']),
         ),
       );
   });

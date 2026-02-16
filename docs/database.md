@@ -10,7 +10,8 @@ Implementation: drizzle-orm ^0.45.1 + pg ^8.18.0 (PostgreSQL)
 - All app queries are server-side and scoped by `userId` from `authMiddleware`.
 - Treat `resolved_at` as the canonical “inactive” marker for tasks; `NULL` means active.
 - Commitments are grouped, ordered, and stateful.
-- Commitment groups can be shared with view/edit permissions.
+- Commitment groups are shared via invitations (`pending`/`accepted`/etc.); only `accepted` shares grant access.
+- Invitations are email-first: pending invites can exist before an account is created and are claimed on sign-in when emails match.
 
 ## Purpose
 

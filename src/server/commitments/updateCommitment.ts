@@ -8,8 +8,8 @@ import {
   commitments,
 } from '@/db/schema';
 import { buildCommitmentUpdatePlan } from '@/domain/commitment/buildCommitmentUpdatePlan';
-import { authMiddleware } from '@/server/middleware/auth';
 import { commitmentPersistenceSchema } from '@/server/commitments/createCommitment';
+import { authMiddleware } from '@/server/middleware/auth';
 
 export const updateCommitment = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
@@ -42,6 +42,7 @@ export const updateCommitment = createServerFn({ method: 'POST' })
           and(
             eq(commitmentGroupShares.groupId, commitmentGroups.id),
             eq(commitmentGroupShares.sharedWithUserId, userId),
+            eq(commitmentGroupShares.status, 'accepted'),
           ),
         )
         .where(eq(commitments.id, data.id));
@@ -79,6 +80,7 @@ export const updateCommitment = createServerFn({ method: 'POST' })
             and(
               eq(commitmentGroupShares.groupId, commitmentGroups.id),
               eq(commitmentGroupShares.sharedWithUserId, userId),
+              eq(commitmentGroupShares.status, 'accepted'),
             ),
           )
           .where(eq(commitmentGroups.id, data.updates.groupId));

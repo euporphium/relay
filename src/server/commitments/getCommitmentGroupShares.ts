@@ -1,16 +1,21 @@
 import { createServerFn } from '@tanstack/react-start';
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { commitmentGroupShares, commitmentGroups, user } from '@/db/schema';
+import type { ShareInvitationStatus } from '@/domain/share/shareInvitationStatuses';
 import type { SharePermission } from '@/domain/share/sharePermissions';
 import { authMiddleware } from '@/server/middleware/auth';
 
 export type CommitmentGroupShare = {
-  userId: string;
-  name: string;
+  id: string;
+  userId: string | null;
+  name: string | null;
   email: string;
   permission: SharePermission;
+  status: ShareInvitationStatus;
+  invitedAt: Date;
+  acceptedAt: Date | null;
 };
 
 const getCommitmentGroupSharesSchema = z.object({
@@ -34,15 +39,33 @@ export const getCommitmentGroupShares = createServerFn()
 
     const shares = await db
       .select({
+        id: commitmentGroupShares.id,
         userId: user.id,
         name: user.name,
-        email: user.email,
+        email: commitmentGroupShares.invitedEmail,
         permission: commitmentGroupShares.permission,
+        status: commitmentGroupShares.status,
+        invitedAt: commitmentGroupShares.invitedAt,
+        acceptedAt: commitmentGroupShares.acceptedAt,
       })
       .from(commitmentGroupShares)
-      .innerJoin(user, eq(commitmentGroupShares.sharedWithUserId, user.id))
-      .where(eq(commitmentGroupShares.groupId, data.groupId))
-      .orderBy(user.name, user.email);
+      .leftJoin(user, eq(commitmentGroupShares.sharedWithUserId, user.id))
+      .where(
+        and(
+          eq(commitmentGroupShares.groupId, data.groupId),
+          inArray(commitmentGroupShares.status, ['pending', 'accepted']),
+        ),
+      )
+      .orderBy(commitmentGroupShares.invitedEmail);
 
-    return { shares };
+    return {
+      acceptedShares: shares.filter((share) => share.status === 'accepted'),
+      pendingInvitations: shares
+        .filter((share) => share.status === 'pending')
+        .map((share) => ({
+          ...share,
+          // Pending invitations expose email only until recipient accepts.
+          name: null,
+        })),
+    };
   });

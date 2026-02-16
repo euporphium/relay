@@ -29,6 +29,13 @@
       "when": 1770577412664,
       "tag": "0003_commitment_group_share",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771200434239,
+      "tag": "0004_zippy_vargas",
+      "breakpoints": true
     }
   ]
 }

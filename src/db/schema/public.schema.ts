@@ -12,6 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { calendarIntervalUnits } from '@/domain/calendar/calendarInterval';
 import { commitmentStates } from '@/domain/commitment/commitmentStates';
+import { shareInvitationStatuses } from '@/domain/share/shareInvitationStatuses';
 import { sharePermissions } from '@/domain/share/sharePermissions';
 import { rescheduleAnchors } from '@/domain/task/rescheduleAnchors';
 import { taskResolutionTypes } from '@/domain/task/taskResolutionTypes';
@@ -32,6 +33,10 @@ export const taskResolutionTypeEnum = pgEnum(
 export const commitmentStateEnum = pgEnum('commitment_state', commitmentStates);
 
 export const sharePermissionEnum = pgEnum('share_permission', sharePermissions);
+export const shareInvitationStatusEnum = pgEnum(
+  'share_invitation_status',
+  shareInvitationStatuses,
+);
 
 export const tasks = pgTable(
   'tasks',
@@ -126,19 +131,49 @@ export const commitmentGroupShares = pgTable(
       .notNull()
       .references(() => commitmentGroups.id, { onDelete: 'cascade' }),
 
-    sharedWithUserId: text('shared_with_user_id')
+    invitedByUserId: text('invited_by_user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
 
+    invitedEmail: text('invited_email').notNull(),
+
+    sharedWithUserId: text('shared_with_user_id').references(() => user.id, {
+      onDelete: 'cascade',
+    }),
+
     permission: sharePermissionEnum('permission').notNull().default('view'),
+    status: shareInvitationStatusEnum('status').notNull().default('pending'),
+
+    invitedAt: timestamp('invited_at').defaultNow().notNull(),
+    respondedAt: timestamp('responded_at'),
+    acceptedAt: timestamp('accepted_at'),
+    rejectedAt: timestamp('rejected_at'),
+    revokedAt: timestamp('revoked_at'),
+    leftAt: timestamp('left_at'),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
     index('commitment_group_shares_group_id_idx').on(table.groupId),
+    index('commitment_group_shares_group_id_status_idx').on(
+      table.groupId,
+      table.status,
+    ),
     index('commitment_group_shares_shared_with_user_id_idx').on(
       table.sharedWithUserId,
+    ),
+    index('commitment_group_shares_shared_with_user_id_status_idx').on(
+      table.sharedWithUserId,
+      table.status,
+    ),
+    index('commitment_group_shares_invited_email_status_idx').on(
+      table.invitedEmail,
+      table.status,
+    ),
+    uniqueIndex('commitment_group_shares_group_id_invited_email_idx').on(
+      table.groupId,
+      table.invitedEmail,
     ),
     uniqueIndex('commitment_group_shares_group_id_shared_with_user_id_idx').on(
       table.groupId,
@@ -201,6 +236,10 @@ export const commitmentGroupSharesRelations = relations(
     }),
     sharedWithUser: one(user, {
       fields: [commitmentGroupShares.sharedWithUserId],
+      references: [user.id],
+    }),
+    invitedByUser: one(user, {
+      fields: [commitmentGroupShares.invitedByUserId],
       references: [user.id],
     }),
   }),

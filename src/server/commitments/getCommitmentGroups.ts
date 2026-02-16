@@ -22,6 +22,7 @@ export const getCommitmentGroups = createServerFn()
         and(
           eq(commitmentGroupShares.groupId, commitmentGroups.id),
           eq(commitmentGroupShares.sharedWithUserId, userId),
+          eq(commitmentGroupShares.status, 'accepted'),
         ),
       )
       .where(

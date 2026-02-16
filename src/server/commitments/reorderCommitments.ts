@@ -34,6 +34,7 @@ export const reorderCommitments = createServerFn({ method: 'POST' })
           and(
             eq(commitmentGroupShares.groupId, commitmentGroups.id),
             eq(commitmentGroupShares.sharedWithUserId, userId),
+            eq(commitmentGroupShares.status, 'accepted'),
           ),
         )
         .where(eq(commitmentGroups.id, data.groupId));

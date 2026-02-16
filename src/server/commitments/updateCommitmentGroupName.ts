@@ -28,6 +28,7 @@ export const updateCommitmentGroupName = createServerFn({ method: 'POST' })
         and(
           eq(commitmentGroupShares.groupId, commitmentGroups.id),
           eq(commitmentGroupShares.sharedWithUserId, userId),
+          eq(commitmentGroupShares.status, 'accepted'),
         ),
       )
       .where(eq(commitmentGroups.id, data.id));

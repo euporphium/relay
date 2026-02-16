@@ -25,6 +25,7 @@ type CommitmentGroupCardProps = {
   group: CommitmentGroup;
   onReorder: (groupId: string | null, orderedIds: string[]) => Promise<void>;
   onRename: (groupId: string, name: string) => Promise<void>;
+  onLeaveShare: (groupId: string) => Promise<void>;
   onEdit: (id: string) => void;
   onChangeState: (
     id: string,
@@ -36,6 +37,7 @@ export function CommitmentGroupCard({
   group,
   onReorder,
   onRename,
+  onLeaveShare,
   onEdit,
   onChangeState,
 }: CommitmentGroupCardProps) {
@@ -90,6 +92,8 @@ export function CommitmentGroupCard({
 
   const canEdit = group.access.canEdit;
   const canRename = group.id !== null && canEdit;
+  const canLeave = group.id !== null && !group.access.isOwner;
+  const leaveGroupId = canLeave ? group.id : null;
 
   const commitNameChange = async () => {
     if (group.id === null) return;
@@ -149,6 +153,16 @@ export function CommitmentGroupCard({
         <div className="flex items-center gap-2">
           {group.id && group.access.isOwner ? (
             <CommitmentGroupSharePopover groupId={group.id} />
+          ) : null}
+          {leaveGroupId ? (
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={() => void onLeaveShare(leaveGroupId)}
+            >
+              Leave
+            </Button>
           ) : null}
           <Button
             type="button"

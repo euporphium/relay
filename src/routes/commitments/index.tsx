@@ -7,22 +7,36 @@ import { CommitmentGroupCard } from '@/features/commitments/components/Commitmen
 import { Route as CommitmentsEditRoute } from '@/routes/commitments/$commitmentId';
 import { Route as CommitmentsCreateRoute } from '@/routes/commitments/create';
 import { getCommitments } from '@/server/commitments/getCommitments';
+import { getPendingCommitmentGroupInvitations } from '@/server/commitments/getPendingCommitmentGroupInvitations';
+import { leaveCommitmentGroup } from '@/server/commitments/leaveCommitmentGroup';
 import { reorderCommitments } from '@/server/commitments/reorderCommitments';
+import { respondToCommitmentGroupInvitation } from '@/server/commitments/respondToCommitmentGroupInvitation';
 import { updateCommitmentGroupName } from '@/server/commitments/updateCommitmentGroupName';
 import { updateCommitmentState } from '@/server/commitments/updateCommitmentState';
 
 export const Route = createFileRoute('/commitments/')({
-  loader: async () => getCommitments(),
+  loader: async () => {
+    const [commitments, invitations] = await Promise.all([
+      getCommitments(),
+      getPendingCommitmentGroupInvitations({ data: {} }),
+    ]);
+    return {
+      groups: commitments.groups,
+      invitations: invitations.invitations,
+    };
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { groups } = Route.useLoaderData();
+  const { groups, invitations } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const router = useRouter();
   const reorderCommitmentsFn = useServerFn(reorderCommitments);
   const updateCommitmentGroupNameFn = useServerFn(updateCommitmentGroupName);
   const updateCommitmentStateFn = useServerFn(updateCommitmentState);
+  const respondToInvitationFn = useServerFn(respondToCommitmentGroupInvitation);
+  const leaveCommitmentGroupFn = useServerFn(leaveCommitmentGroup);
 
   async function handleReorder(groupId: string | null, orderedIds: string[]) {
     if (orderedIds.length < 2) return;
@@ -53,6 +67,31 @@ function RouteComponent() {
     }
   }
 
+  async function handleInvitationResponse(
+    invitationId: string,
+    decision: 'accept' | 'reject',
+  ) {
+    try {
+      await respondToInvitationFn({ data: { invitationId, decision } });
+      toast.success(
+        decision === 'accept' ? 'Invitation accepted' : 'Invitation rejected',
+      );
+      void router.invalidate();
+    } catch {
+      toast.error('Failed to respond to invitation');
+    }
+  }
+
+  async function handleLeaveShare(groupId: string) {
+    try {
+      await leaveCommitmentGroupFn({ data: { groupId } });
+      toast.success('You left the shared group');
+      void router.invalidate();
+    } catch {
+      toast.error('Failed to leave shared group');
+    }
+  }
+
   function handleEdit(id: string) {
     navigate({
       to: CommitmentsEditRoute.to,
@@ -71,6 +110,55 @@ function RouteComponent() {
           </p>
         </div>
       </header>
+
+      {invitations.length > 0 ? (
+        <section className="rounded-xl border border-border/70 bg-card px-4 py-3 space-y-3">
+          <h2 className="text-sm font-semibold">Pending invitations</h2>
+          <div className="space-y-2">
+            {invitations.map((invitation) => (
+              <div
+                key={invitation.invitationId}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2"
+              >
+                <div className="flex flex-col">
+                  <p className="text-sm font-medium">{invitation.groupName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    From {invitation.ownerName} ({invitation.ownerEmail}) •{' '}
+                    {invitation.permission === 'edit' ? 'Can edit' : 'Can view'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="outline"
+                    onClick={() =>
+                      void handleInvitationResponse(
+                        invitation.invitationId,
+                        'reject',
+                      )
+                    }
+                  >
+                    Reject
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    onClick={() =>
+                      void handleInvitationResponse(
+                        invitation.invitationId,
+                        'accept',
+                      )
+                    }
+                  >
+                    Accept
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <Button
         onClick={() =>
@@ -94,6 +182,7 @@ function RouteComponent() {
             group={group}
             onReorder={handleReorder}
             onRename={handleRenameGroup}
+            onLeaveShare={handleLeaveShare}
             onChangeState={handleStateChange}
             onEdit={handleEdit}
           />
