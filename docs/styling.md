@@ -31,6 +31,7 @@ Implementation: Tailwind CSS `^4.1.18` (Vite plugin `@tailwindcss/vite`), shadcn
 
 - Prefer Tailwind utilities over custom CSS. The only global CSS lives in `src/styles.css`.
 - Use design tokens (e.g. `bg-background`, `text-muted-foreground`, `border-border`) instead of raw colors.
+- Use semantic state tokens for positive outcomes (`--success`, `--success-foreground` in `src/styles.css`, consumed as `bg-success`, `text-success`, etc.).
 - When adding variants, use `cva` and expose `variant`/`size` props (see `Button`, `Field`).
 - Always compose classes with `cn`; pass `className` through so callers can override/extend.
 - Avoid inline styles and `style={{ ... }}` unless setting CSS custom properties for third-party components. If a value cannot be expressed with Tailwind tokens, introduce a token in `src/styles.css` first.
