@@ -1,8 +1,5 @@
-import { type ReactNode, useEffect, useId, useState } from 'react';
-import {
-  type CommitmentSectionUiState,
-  commitmentSectionStateCollection,
-} from './commitmentSectionState';
+import { type ReactNode, useEffect, useId, useSyncExternalStore } from 'react';
+import { commitmentSectionStateCollection } from './commitmentSectionState';
 
 type CommitmentSectionRenderArgs = {
   contentId: string;
@@ -16,36 +13,40 @@ type CommitmentSectionProps = {
   children: (args: CommitmentSectionRenderArgs) => ReactNode;
 };
 
+function readPersistedSectionState(sectionId: string) {
+  for (const [, section] of commitmentSectionStateCollection.entries()) {
+    if (section.id === sectionId) {
+      return section;
+    }
+  }
+
+  return undefined;
+}
+
 export function CommitmentSection({
   sectionId,
   defaultOpen = true,
   children,
 }: CommitmentSectionProps) {
   const contentId = useId();
-  const [data, setData] = useState<CommitmentSectionUiState[]>([]);
 
   useEffect(() => {
-    const readSectionState = () => {
-      setData(
-        Array.from(
-          commitmentSectionStateCollection.entries(),
-          ([, section]) => section,
-        ),
-      );
-    };
-
     commitmentSectionStateCollection.startSyncImmediate();
-    readSectionState();
-
-    const subscription =
-      commitmentSectionStateCollection.subscribeChanges(readSectionState);
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
-  const persistedSection = data?.find((section) => section.id === sectionId);
+  const persistedSection = useSyncExternalStore(
+    (onStoreChange) => {
+      const subscription =
+        commitmentSectionStateCollection.subscribeChanges(onStoreChange);
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    },
+    () => readPersistedSectionState(sectionId),
+    () => undefined,
+  );
+
   const isOpen = persistedSection?.isOpen ?? defaultOpen;
 
   const toggle = () => {
