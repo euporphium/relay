@@ -90,10 +90,10 @@ export const taskResolutions = pgTable('task_resolutions', {
   resolutionType: taskResolutionTypeEnum('type').notNull().default('completed'),
 
   /* Absolute moment (UTC) */
-  resolvedAt: timestamp('completed_at').notNull(),
+  resolvedAt: timestamp('resolved_at').notNull(),
 
   /* Local calendar date (no timezone) */
-  resolvedDate: date('completed_date').notNull(),
+  resolvedDate: date('resolved_date').notNull(),
 
   /* Snapshot of the scheduled date at completion time */
   scheduledDate: date('scheduled_date').notNull(),
