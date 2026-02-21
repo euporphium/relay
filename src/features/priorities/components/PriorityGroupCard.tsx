@@ -11,7 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { usePointerType } from '@/hooks/usePointerType';
 import { useResponsiveSortableSensors } from '@/hooks/useResponsiveSortableSensors';
@@ -110,10 +110,10 @@ export function PriorityGroupCard({
   };
 
   return (
-    <Card className="p-6 md:p-8">
+    <Card size="sm">
       <PrioritySection sectionId={sectionId}>
         {({ contentId, isOpen, toggle }) => (
-          <div className="flex flex-col">
+          <CardContent className="flex flex-col">
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1">
                 {isEditing && canRename ? (
@@ -207,7 +207,7 @@ export function PriorityGroupCard({
               id={contentId}
               aria-hidden={!isOpen}
             >
-              <div className="space-y-3 overflow-hidden">
+              <div className="flex flex-col gap-3 overflow-hidden">
                 {group.priorities.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     No priorities in this group
@@ -286,7 +286,7 @@ export function PriorityGroupCard({
                 )}
               </div>
             </div>
-          </div>
+          </CardContent>
         )}
       </PrioritySection>
     </Card>

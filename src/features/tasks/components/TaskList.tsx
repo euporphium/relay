@@ -1,4 +1,4 @@
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { TaskForDate } from '@/shared/types/task';
 import { type TaskActions, TaskRow } from './TaskRow';
 
@@ -16,10 +16,12 @@ export function TaskList({
   actions,
 }: TaskListProps) {
   return (
-    <Card className="space-y-4 p-6 md:p-8">
-      <h2 className="text-lg md:text-xl font-semibold">{title}</h2>
+    <Card size="sm">
+      <CardHeader>
+        <h2 className="text-lg md:text-xl font-semibold">{title}</h2>
+      </CardHeader>
 
-      <div className="space-y-2">
+      <CardContent className="space-y-2">
         {tasks.length === 0 ? (
           <p className="text-sm text-muted-foreground">{emptyMessage}</p>
         ) : (
@@ -27,7 +29,7 @@ export function TaskList({
             <TaskRow key={task.id} task={task} actions={actions} />
           ))
         )}
-      </div>
+      </CardContent>
     </Card>
   );
 }

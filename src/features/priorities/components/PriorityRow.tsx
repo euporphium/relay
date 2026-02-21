@@ -110,7 +110,7 @@ function ActivePriorityRow({
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 items-start justify-between gap-2 sm:gap-4">
-          <h3 className="min-w-0 wrap-break-word text-sm font-semibold">
+          <h3 className="min-w-0 wrap-break-word text-sm font-semibold self-center">
             {priority.title}
           </h3>
 
