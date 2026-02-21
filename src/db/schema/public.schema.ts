@@ -11,7 +11,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { calendarIntervalUnits } from '@/domain/calendar/calendarInterval';
-import { commitmentStates } from '@/domain/commitment/commitmentStates';
+import { priorityStates } from '@/domain/priority/priorityStates';
 import { shareInvitationStatuses } from '@/domain/share/shareInvitationStatuses';
 import { sharePermissions } from '@/domain/share/sharePermissions';
 import { rescheduleAnchors } from '@/domain/task/rescheduleAnchors';
@@ -30,7 +30,7 @@ export const taskResolutionTypeEnum = pgEnum(
   taskResolutionTypes,
 );
 
-export const commitmentStateEnum = pgEnum('commitment_state', commitmentStates);
+export const priorityStateEnum = pgEnum('priority_state', priorityStates);
 
 export const sharePermissionEnum = pgEnum('share_permission', sharePermissions);
 export const shareInvitationStatusEnum = pgEnum(
@@ -99,8 +99,8 @@ export const taskResolutions = pgTable('task_resolutions', {
   scheduledDate: date('scheduled_date').notNull(),
 });
 
-export const commitmentGroups = pgTable(
-  'commitment_groups',
+export const priorityGroups = pgTable(
+  'priority_groups',
   {
     id: uuid('id').defaultRandom().primaryKey(),
 
@@ -114,22 +114,22 @@ export const commitmentGroups = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index('commitment_groups_user_id_idx').on(table.userId),
-    uniqueIndex('commitment_groups_user_id_name_idx').on(
+    index('priority_groups_user_id_idx').on(table.userId),
+    uniqueIndex('priority_groups_user_id_name_idx').on(
       table.userId,
       table.name,
     ),
   ],
 );
 
-export const commitmentGroupShares = pgTable(
-  'commitment_group_shares',
+export const priorityGroupShares = pgTable(
+  'priority_group_shares',
   {
     id: uuid('id').defaultRandom().primaryKey(),
 
     groupId: uuid('group_id')
       .notNull()
-      .references(() => commitmentGroups.id, { onDelete: 'cascade' }),
+      .references(() => priorityGroups.id, { onDelete: 'cascade' }),
 
     invitedByUserId: text('invited_by_user_id')
       .notNull()
@@ -155,35 +155,35 @@ export const commitmentGroupShares = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index('commitment_group_shares_group_id_idx').on(table.groupId),
-    index('commitment_group_shares_group_id_status_idx').on(
+    index('priority_group_shares_group_id_idx').on(table.groupId),
+    index('priority_group_shares_group_id_status_idx').on(
       table.groupId,
       table.status,
     ),
-    index('commitment_group_shares_shared_with_user_id_idx').on(
+    index('priority_group_shares_shared_with_user_id_idx').on(
       table.sharedWithUserId,
     ),
-    index('commitment_group_shares_shared_with_user_id_status_idx').on(
+    index('priority_group_shares_shared_with_user_id_status_idx').on(
       table.sharedWithUserId,
       table.status,
     ),
-    index('commitment_group_shares_invited_email_status_idx').on(
+    index('priority_group_shares_invited_email_status_idx').on(
       table.invitedEmail,
       table.status,
     ),
-    uniqueIndex('commitment_group_shares_group_id_invited_email_idx').on(
+    uniqueIndex('priority_group_shares_group_id_invited_email_idx').on(
       table.groupId,
       table.invitedEmail,
     ),
-    uniqueIndex('commitment_group_shares_group_id_shared_with_user_id_idx').on(
+    uniqueIndex('priority_group_shares_group_id_shared_with_user_id_idx').on(
       table.groupId,
       table.sharedWithUserId,
     ),
   ],
 );
 
-export const commitments = pgTable(
-  'commitments',
+export const priorities = pgTable(
+  'priorities',
   {
     id: uuid('id').defaultRandom().primaryKey(),
 
@@ -191,23 +191,23 @@ export const commitments = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
 
-    groupId: uuid('group_id').references(() => commitmentGroups.id, {
+    groupId: uuid('group_id').references(() => priorityGroups.id, {
       onDelete: 'set null',
     }),
 
     title: text('title').notNull(),
     note: text('note'),
 
-    state: commitmentStateEnum('state').notNull().default('active'),
+    state: priorityStateEnum('state').notNull().default('active'),
     position: integer('position').notNull(),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (table) => [
-    index('commitments_user_id_idx').on(table.userId),
-    index('commitments_group_id_idx').on(table.groupId),
-    index('commitments_group_order_idx').on(
+    index('priorities_user_id_idx').on(table.userId),
+    index('priorities_group_id_idx').on(table.groupId),
+    index('priorities_group_order_idx').on(
       table.userId,
       table.groupId,
       table.position,
@@ -215,43 +215,43 @@ export const commitments = pgTable(
   ],
 );
 
-export const commitmentGroupsRelations = relations(
-  commitmentGroups,
+export const priorityGroupsRelations = relations(
+  priorityGroups,
   ({ one, many }) => ({
     user: one(user, {
-      fields: [commitmentGroups.userId],
+      fields: [priorityGroups.userId],
       references: [user.id],
     }),
-    commitments: many(commitments),
-    shares: many(commitmentGroupShares),
+    priorities: many(priorities),
+    shares: many(priorityGroupShares),
   }),
 );
 
-export const commitmentGroupSharesRelations = relations(
-  commitmentGroupShares,
+export const priorityGroupSharesRelations = relations(
+  priorityGroupShares,
   ({ one }) => ({
-    group: one(commitmentGroups, {
-      fields: [commitmentGroupShares.groupId],
-      references: [commitmentGroups.id],
+    group: one(priorityGroups, {
+      fields: [priorityGroupShares.groupId],
+      references: [priorityGroups.id],
     }),
     sharedWithUser: one(user, {
-      fields: [commitmentGroupShares.sharedWithUserId],
+      fields: [priorityGroupShares.sharedWithUserId],
       references: [user.id],
     }),
     invitedByUser: one(user, {
-      fields: [commitmentGroupShares.invitedByUserId],
+      fields: [priorityGroupShares.invitedByUserId],
       references: [user.id],
     }),
   }),
 );
 
-export const commitmentsRelations = relations(commitments, ({ one }) => ({
+export const prioritiesRelations = relations(priorities, ({ one }) => ({
   user: one(user, {
-    fields: [commitments.userId],
+    fields: [priorities.userId],
     references: [user.id],
   }),
-  group: one(commitmentGroups, {
-    fields: [commitments.groupId],
-    references: [commitmentGroups.id],
+  group: one(priorityGroups, {
+    fields: [priorities.groupId],
+    references: [priorityGroups.id],
   }),
 }));

@@ -33,10 +33,10 @@ Not covered:
 | `src/routes/tasks/index.tsx`               | `/tasks/` list, search param `date`, loader + loaderDeps          |
 | `src/routes/tasks/create.tsx`              | `/tasks/create`, `returnTo` search param                          |
 | `src/routes/tasks/$taskId.tsx`             | `/tasks/:taskId`, loader + `notFound`                             |
-| `src/routes/commitments.tsx`               | `/commitments` layout + auth gating                               |
-| `src/routes/commitments/index.tsx`         | `/commitments/` list, loader                                      |
-| `src/routes/commitments/create.tsx`        | `/commitments/create`, `returnTo` search param                    |
-| `src/routes/commitments/$commitmentId.tsx` | `/commitments/:commitmentId`, loader + `notFound`                 |
+| `src/routes/priorities.tsx`               | `/priorities` layout + auth gating                               |
+| `src/routes/priorities/index.tsx`         | `/priorities/` list, loader                                      |
+| `src/routes/priorities/create.tsx`        | `/priorities/create`, `returnTo` search param                    |
+| `src/routes/priorities/$priorityId.tsx` | `/priorities/:priorityId`, loader + `notFound`                 |
 | `src/routes/api/auth/$.ts`                 | `/api/auth/*` server handlers                                     |
 
 ## Conventions

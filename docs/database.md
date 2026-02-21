@@ -9,8 +9,8 @@ Implementation: drizzle-orm ^0.45.1 + pg ^8.18.0 (PostgreSQL)
 - Migrations are generated and tracked by drizzle-kit using `drizzle.config.ts` and the `drizzle/` folder.
 - All app queries are server-side and scoped by `userId` from `authMiddleware`.
 - Treat `resolved_at` as the canonical “inactive” marker for tasks; `NULL` means active.
-- Commitments are grouped, ordered, and stateful.
-- Commitment groups are shared via invitations (`pending`/`accepted`/etc.); only `accepted` shares grant access.
+- Priorities are grouped, ordered, and stateful.
+- Priority groups are shared via invitations (`pending`/`accepted`/etc.); only `accepted` shares grant access.
 - Invitations are email-first: pending invites can exist before an account is created and are claimed on sign-in when emails match.
 
 ## Purpose
@@ -31,7 +31,7 @@ Implementation: drizzle-orm ^0.45.1 + pg ^8.18.0 (PostgreSQL)
 | `src/db/schema/public.schema.ts` | `public` schema (app tables)                             |
 | `src/env/server.ts`              | Runtime env validation for `DATABASE_URL`                |
 | `src/server/tasks/*.ts`          | Task persistence and lifecycle operations                |
-| `src/server/commitments/*.ts`    | Commitment persistence and lifecycle operations          |
+| `src/server/priorities/*.ts`    | Priority persistence and lifecycle operations          |
 | `src/app/auth/index.ts`          | Better Auth Drizzle adapter wiring                       |
 
 ## Conventions

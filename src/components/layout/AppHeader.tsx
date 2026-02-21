@@ -69,13 +69,13 @@ export function AppHeader({ userName }: AppHeaderProps) {
             Tasks
           </Link>
           <Link
-            to="/commitments"
+            to="/priorities"
             className={cn(navLinkBase, 'whitespace-nowrap')}
             activeProps={{
               className: cn(navLinkBase, 'text-foreground whitespace-nowrap'),
             }}
           >
-            Commitments
+            Priorities
           </Link>
         </nav>
 

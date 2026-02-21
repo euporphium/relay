@@ -11,15 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as PrioritiesRouteImport } from './routes/priorities'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as CommitmentsRouteImport } from './routes/commitments'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TasksIndexRouteImport } from './routes/tasks/index'
-import { Route as CommitmentsIndexRouteImport } from './routes/commitments/index'
+import { Route as PrioritiesIndexRouteImport } from './routes/priorities/index'
 import { Route as TasksCreateRouteImport } from './routes/tasks/create'
 import { Route as TasksTaskIdRouteImport } from './routes/tasks/$taskId'
-import { Route as CommitmentsCreateRouteImport } from './routes/commitments/create'
-import { Route as CommitmentsCommitmentIdRouteImport } from './routes/commitments/$commitmentId'
+import { Route as PrioritiesCreateRouteImport } from './routes/priorities/create'
+import { Route as PrioritiesPriorityIdRouteImport } from './routes/priorities/$priorityId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const TasksRoute = TasksRouteImport.update({
@@ -32,14 +32,14 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrioritiesRoute = PrioritiesRouteImport.update({
+  id: '/priorities',
+  path: '/priorities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommitmentsRoute = CommitmentsRouteImport.update({
-  id: '/commitments',
-  path: '/commitments',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -52,10 +52,10 @@ const TasksIndexRoute = TasksIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TasksRoute,
 } as any)
-const CommitmentsIndexRoute = CommitmentsIndexRouteImport.update({
+const PrioritiesIndexRoute = PrioritiesIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => CommitmentsRoute,
+  getParentRoute: () => PrioritiesRoute,
 } as any)
 const TasksCreateRoute = TasksCreateRouteImport.update({
   id: '/create',
@@ -67,15 +67,15 @@ const TasksTaskIdRoute = TasksTaskIdRouteImport.update({
   path: '/$taskId',
   getParentRoute: () => TasksRoute,
 } as any)
-const CommitmentsCreateRoute = CommitmentsCreateRouteImport.update({
+const PrioritiesCreateRoute = PrioritiesCreateRouteImport.update({
   id: '/create',
   path: '/create',
-  getParentRoute: () => CommitmentsRoute,
+  getParentRoute: () => PrioritiesRoute,
 } as any)
-const CommitmentsCommitmentIdRoute = CommitmentsCommitmentIdRouteImport.update({
-  id: '/$commitmentId',
-  path: '/$commitmentId',
-  getParentRoute: () => CommitmentsRoute,
+const PrioritiesPriorityIdRoute = PrioritiesPriorityIdRouteImport.update({
+  id: '/$priorityId',
+  path: '/$priorityId',
+  getParentRoute: () => PrioritiesRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -85,15 +85,15 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/commitments': typeof CommitmentsRouteWithChildren
   '/login': typeof LoginRoute
+  '/priorities': typeof PrioritiesRouteWithChildren
   '/signup': typeof SignupRoute
   '/tasks': typeof TasksRouteWithChildren
-  '/commitments/$commitmentId': typeof CommitmentsCommitmentIdRoute
-  '/commitments/create': typeof CommitmentsCreateRoute
+  '/priorities/$priorityId': typeof PrioritiesPriorityIdRoute
+  '/priorities/create': typeof PrioritiesCreateRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/create': typeof TasksCreateRoute
-  '/commitments/': typeof CommitmentsIndexRoute
+  '/priorities/': typeof PrioritiesIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -101,26 +101,26 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/commitments/$commitmentId': typeof CommitmentsCommitmentIdRoute
-  '/commitments/create': typeof CommitmentsCreateRoute
+  '/priorities/$priorityId': typeof PrioritiesPriorityIdRoute
+  '/priorities/create': typeof PrioritiesCreateRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/create': typeof TasksCreateRoute
-  '/commitments': typeof CommitmentsIndexRoute
+  '/priorities': typeof PrioritiesIndexRoute
   '/tasks': typeof TasksIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/commitments': typeof CommitmentsRouteWithChildren
   '/login': typeof LoginRoute
+  '/priorities': typeof PrioritiesRouteWithChildren
   '/signup': typeof SignupRoute
   '/tasks': typeof TasksRouteWithChildren
-  '/commitments/$commitmentId': typeof CommitmentsCommitmentIdRoute
-  '/commitments/create': typeof CommitmentsCreateRoute
+  '/priorities/$priorityId': typeof PrioritiesPriorityIdRoute
+  '/priorities/create': typeof PrioritiesCreateRoute
   '/tasks/$taskId': typeof TasksTaskIdRoute
   '/tasks/create': typeof TasksCreateRoute
-  '/commitments/': typeof CommitmentsIndexRoute
+  '/priorities/': typeof PrioritiesIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -128,15 +128,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/commitments'
     | '/login'
+    | '/priorities'
     | '/signup'
     | '/tasks'
-    | '/commitments/$commitmentId'
-    | '/commitments/create'
+    | '/priorities/$priorityId'
+    | '/priorities/create'
     | '/tasks/$taskId'
     | '/tasks/create'
-    | '/commitments/'
+    | '/priorities/'
     | '/tasks/'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -144,33 +144,33 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
-    | '/commitments/$commitmentId'
-    | '/commitments/create'
+    | '/priorities/$priorityId'
+    | '/priorities/create'
     | '/tasks/$taskId'
     | '/tasks/create'
-    | '/commitments'
+    | '/priorities'
     | '/tasks'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
-    | '/commitments'
     | '/login'
+    | '/priorities'
     | '/signup'
     | '/tasks'
-    | '/commitments/$commitmentId'
-    | '/commitments/create'
+    | '/priorities/$priorityId'
+    | '/priorities/create'
     | '/tasks/$taskId'
     | '/tasks/create'
-    | '/commitments/'
+    | '/priorities/'
     | '/tasks/'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CommitmentsRoute: typeof CommitmentsRouteWithChildren
   LoginRoute: typeof LoginRoute
+  PrioritiesRoute: typeof PrioritiesRouteWithChildren
   SignupRoute: typeof SignupRoute
   TasksRoute: typeof TasksRouteWithChildren
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -192,18 +192,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/priorities': {
+      id: '/priorities'
+      path: '/priorities'
+      fullPath: '/priorities'
+      preLoaderRoute: typeof PrioritiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/commitments': {
-      id: '/commitments'
-      path: '/commitments'
-      fullPath: '/commitments'
-      preLoaderRoute: typeof CommitmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -220,12 +220,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TasksIndexRouteImport
       parentRoute: typeof TasksRoute
     }
-    '/commitments/': {
-      id: '/commitments/'
+    '/priorities/': {
+      id: '/priorities/'
       path: '/'
-      fullPath: '/commitments/'
-      preLoaderRoute: typeof CommitmentsIndexRouteImport
-      parentRoute: typeof CommitmentsRoute
+      fullPath: '/priorities/'
+      preLoaderRoute: typeof PrioritiesIndexRouteImport
+      parentRoute: typeof PrioritiesRoute
     }
     '/tasks/create': {
       id: '/tasks/create'
@@ -241,19 +241,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TasksTaskIdRouteImport
       parentRoute: typeof TasksRoute
     }
-    '/commitments/create': {
-      id: '/commitments/create'
+    '/priorities/create': {
+      id: '/priorities/create'
       path: '/create'
-      fullPath: '/commitments/create'
-      preLoaderRoute: typeof CommitmentsCreateRouteImport
-      parentRoute: typeof CommitmentsRoute
+      fullPath: '/priorities/create'
+      preLoaderRoute: typeof PrioritiesCreateRouteImport
+      parentRoute: typeof PrioritiesRoute
     }
-    '/commitments/$commitmentId': {
-      id: '/commitments/$commitmentId'
-      path: '/$commitmentId'
-      fullPath: '/commitments/$commitmentId'
-      preLoaderRoute: typeof CommitmentsCommitmentIdRouteImport
-      parentRoute: typeof CommitmentsRoute
+    '/priorities/$priorityId': {
+      id: '/priorities/$priorityId'
+      path: '/$priorityId'
+      fullPath: '/priorities/$priorityId'
+      preLoaderRoute: typeof PrioritiesPriorityIdRouteImport
+      parentRoute: typeof PrioritiesRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -265,20 +265,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface CommitmentsRouteChildren {
-  CommitmentsCommitmentIdRoute: typeof CommitmentsCommitmentIdRoute
-  CommitmentsCreateRoute: typeof CommitmentsCreateRoute
-  CommitmentsIndexRoute: typeof CommitmentsIndexRoute
+interface PrioritiesRouteChildren {
+  PrioritiesPriorityIdRoute: typeof PrioritiesPriorityIdRoute
+  PrioritiesCreateRoute: typeof PrioritiesCreateRoute
+  PrioritiesIndexRoute: typeof PrioritiesIndexRoute
 }
 
-const CommitmentsRouteChildren: CommitmentsRouteChildren = {
-  CommitmentsCommitmentIdRoute: CommitmentsCommitmentIdRoute,
-  CommitmentsCreateRoute: CommitmentsCreateRoute,
-  CommitmentsIndexRoute: CommitmentsIndexRoute,
+const PrioritiesRouteChildren: PrioritiesRouteChildren = {
+  PrioritiesPriorityIdRoute: PrioritiesPriorityIdRoute,
+  PrioritiesCreateRoute: PrioritiesCreateRoute,
+  PrioritiesIndexRoute: PrioritiesIndexRoute,
 }
 
-const CommitmentsRouteWithChildren = CommitmentsRoute._addFileChildren(
-  CommitmentsRouteChildren,
+const PrioritiesRouteWithChildren = PrioritiesRoute._addFileChildren(
+  PrioritiesRouteChildren,
 )
 
 interface TasksRouteChildren {
@@ -297,8 +297,8 @@ const TasksRouteWithChildren = TasksRoute._addFileChildren(TasksRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CommitmentsRoute: CommitmentsRouteWithChildren,
   LoginRoute: LoginRoute,
+  PrioritiesRoute: PrioritiesRouteWithChildren,
   SignupRoute: SignupRoute,
   TasksRoute: TasksRouteWithChildren,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
