@@ -1,16 +1,7 @@
-import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
+import { closestCenter, DndContext } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
@@ -22,6 +13,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { usePointerType } from '@/hooks/usePointerType';
+import { useResponsiveSortableSensors } from '@/hooks/useResponsiveSortableSensors';
 import { cn } from '@/lib/utils';
 import type { Priority, PriorityGroup } from '@/shared/types/priority';
 import { PriorityGroupSharePopover } from './PriorityGroupSharePopover';
@@ -61,6 +54,8 @@ export function PriorityGroupCard({
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(group.name);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { pointerType } = usePointerType();
+  const { sensors } = useResponsiveSortableSensors({ pointerType });
 
   useEffect(() => {
     setActiveOrder(activePriorities.map((priority) => priority.id));
@@ -85,22 +80,22 @@ export function PriorityGroupCard({
     .map((id) => activeById.get(id))
     .filter((priority): priority is Priority => Boolean(priority));
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 150, tolerance: 8 },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
   const canEdit = group.access.canEdit;
   const canRename = group.id !== null && canEdit;
   const canLeave = group.id !== null && !group.access.isOwner;
   const leaveGroupId = canLeave ? group.id : null;
   const sharedByLabel = group.access.sharedByName ?? 'someone';
   const sectionId = `group:${group.id ?? 'ungrouped'}`;
+  const triggerDragHaptic = () => {
+    if (
+      typeof navigator === 'undefined' ||
+      typeof navigator.vibrate !== 'function'
+    ) {
+      return;
+    }
+
+    navigator.vibrate(25);
+  };
 
   const commitNameChange = async () => {
     if (group.id === null) return;
@@ -158,8 +153,8 @@ export function PriorityGroupCard({
                   </div>
                 )}
                 <p className="text-sm text-muted-foreground">
-                  {group.priorities.length} priority
-                  {group.priorities.length === 1 ? '' : 's'}
+                  {group.priorities.length}{' '}
+                  {group.priorities.length === 1 ? 'priority' : 'priorities'}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -224,6 +219,11 @@ export function PriorityGroupCard({
                         id={`priorities-dnd-${sectionId}`}
                         sensors={sensors}
                         collisionDetection={closestCenter}
+                        onDragStart={() => {
+                          if (pointerType === 'coarse') {
+                            triggerDragHaptic();
+                          }
+                        }}
                         onDragEnd={async ({ active, over }) => {
                           if (!over || active.id === over.id) return;
                           const oldIndex = activeOrder.indexOf(
@@ -257,6 +257,7 @@ export function PriorityGroupCard({
                               priority={priority}
                               onChangeState={onChangeState}
                               onEdit={onEdit}
+                              pointerType={pointerType}
                             />
                           ))}
                         </SortableContext>

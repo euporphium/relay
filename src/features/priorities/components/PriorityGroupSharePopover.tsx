@@ -13,8 +13,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import type { SharePermission } from '@/domain/share/sharePermissions';
+import { usePriorityGroupShares } from '../hooks/usePriorityGroupShares';
 import { ShareRow } from './ShareRow';
-import { usePriorityGroupShares } from './usePriorityGroupShares';
 
 type PriorityGroupSharePopoverProps = {
   groupId: string;

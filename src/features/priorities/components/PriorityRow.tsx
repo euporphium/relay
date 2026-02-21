@@ -14,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useSortableRowBindings } from '@/features/priorities/hooks/useSortableRowBindings';
+import type { PointerType } from '@/hooks/usePointerType';
 import { cn } from '@/lib/utils';
 import type { Priority } from '@/shared/types/priority';
 
@@ -98,7 +100,7 @@ function ActivePriorityRow({
           aria-label="Reorder priority"
           {...dragHandleProps}
           className={cn(
-            '-ml-1 flex shrink-0 select-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 touch-manipulation',
+            '-ml-1 hidden shrink-0 select-none items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 touch-manipulation [@media(hover:hover)_and_(pointer:fine)]:flex',
             dragHandleProps?.className,
           )}
         >
@@ -195,6 +197,10 @@ function RowActionsMenu({
             size="icon-xs"
             variant="ghost"
             aria-label="More actions"
+            onPointerDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <DotsThreeVerticalIcon />
           </Button>
@@ -246,12 +252,14 @@ type SortablePriorityRowProps = {
   priority: Priority;
   onChangeState: (id: string, state: Priority['state']) => void;
   onEdit: (id: string) => void;
+  pointerType: PointerType;
 };
 
 export function SortablePriorityRow({
   priority,
   onChangeState,
   onEdit,
+  pointerType,
 }: SortablePriorityRowProps) {
   const {
     attributes,
@@ -266,6 +274,13 @@ export function SortablePriorityRow({
     transform: CSS.Transform.toString(transform),
     transition,
   };
+  const bindings = useSortableRowBindings({
+    pointerType,
+    setNodeRef,
+    style,
+    attributes,
+    listeners,
+  });
 
   return (
     <PriorityRow
@@ -274,13 +289,8 @@ export function SortablePriorityRow({
       onEdit={onEdit}
       isDragging={isDragging}
       canEdit
-      containerProps={{ ref: setNodeRef, style }}
-      dragHandleProps={{
-        ...attributes,
-        ...listeners,
-        className: cn('select-none touch-none'),
-        style: { touchAction: 'none' },
-      }}
+      containerProps={bindings.containerProps}
+      dragHandleProps={bindings.dragHandleProps}
     />
   );
 }
