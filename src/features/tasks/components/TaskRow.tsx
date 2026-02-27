@@ -1,13 +1,22 @@
-import { CheckIcon, PencilIcon, SkipForwardIcon } from '@phosphor-icons/react';
+import { CheckIcon, DotsThreeVerticalIcon } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { TaskForDate } from '@/shared/types/task';
 import { IconButton } from './IconButton';
 import { TaskContent } from './TaskContent';
 
 export type TaskActions = {
-  complete?: (taskId: string) => void;
-  skip?: (taskId: string) => void;
-  edit: (taskId: string) => void;
+  completeTask?: (taskId: string) => void;
+  skipTask?: (taskId: string) => void;
+  editTask: (taskId: string) => void;
+  deleteTask: (taskId: string) => void;
 };
 
 type TaskRowProps = {
@@ -16,35 +25,60 @@ type TaskRowProps = {
 };
 
 export function TaskRow({ task, actions }: TaskRowProps) {
-  const { complete, skip, edit } = actions;
+  const { completeTask, skipTask, editTask, deleteTask } = actions;
 
-  const canComplete = task.status === 'active' && complete;
-  const canSkip = task.status === 'active' && skip;
+  const canComplete = task.status === 'active' && completeTask;
+  const canSkip = task.status === 'active' && skipTask;
+  const actionsMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          size="icon-xs"
+          variant="ghost"
+          aria-label="More actions"
+        >
+          <DotsThreeVerticalIcon />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => editTask(task.id)}>
+          Edit
+        </DropdownMenuItem>
+        {canSkip ? (
+          <DropdownMenuItem onClick={() => skipTask(task.id)}>
+            Skip
+          </DropdownMenuItem>
+        ) : null}
+        {canSkip ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={() => deleteTask(task.id)}
+        >
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <div
       className={cn(
-        'flex items-center gap-4 md:gap-6 rounded-lg border p-4',
+        'flex items-start gap-4 md:gap-6 rounded-lg border p-4',
         'hover:bg-muted/40 transition-colors',
       )}
     >
       {canComplete && (
-        <IconButton label="Complete task" onClick={() => complete(task.id)}>
+        <IconButton
+          label="Complete task"
+          onClick={() => completeTask(task.id)}
+          className="self-center"
+        >
           <CheckIcon />
         </IconButton>
       )}
 
-      <TaskContent task={task} />
-
-      {canSkip && (
-        <IconButton label="Skip task" onClick={() => skip(task.id)}>
-          <SkipForwardIcon />
-        </IconButton>
-      )}
-
-      <IconButton label="Edit task" onClick={() => edit(task.id)}>
-        <PencilIcon />
-      </IconButton>
+      <TaskContent task={task} actions={actionsMenu} />
     </div>
   );
 }
