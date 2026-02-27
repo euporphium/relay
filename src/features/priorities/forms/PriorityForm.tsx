@@ -1,10 +1,26 @@
 import { withForm } from '@/components/form/hooks';
 import { FieldGroup } from '@/components/ui/field';
+import { AttachmentSection } from '@/features/attachments/components/AttachmentSection';
+import type { Attachment } from '@/shared/types/attachment';
 import type { PriorityGroupOption } from '@/shared/types/priority';
 import type { PriorityInput } from '@/shared/validation/priorityInput.schema';
 
 const CUSTOM_GROUP_VALUE = '__custom__';
 const NO_GROUP_VALUE = '__none__';
+
+type PriorityFormProps = {
+  groups: PriorityGroupOption[];
+  submitLabel: string;
+  ownerId?: string;
+  initialAttachments: Attachment[];
+};
+
+const formProps: PriorityFormProps = {
+  groups: [],
+  submitLabel: '',
+  ownerId: undefined,
+  initialAttachments: [],
+};
 
 export const PriorityForm = withForm({
   defaultValues: {
@@ -14,11 +30,8 @@ export const PriorityForm = withForm({
     groupName: '',
     groupSelection: undefined,
   } as PriorityInput,
-  props: {
-    groups: [] as PriorityGroupOption[],
-    submitLabel: '',
-  },
-  render: ({ form, groups, submitLabel }) => {
+  props: formProps,
+  render: ({ form, groups, submitLabel, ownerId, initialAttachments }) => {
     const options = [
       { label: 'No group', value: NO_GROUP_VALUE },
       { label: 'New group...', value: CUSTOM_GROUP_VALUE },
@@ -85,6 +98,12 @@ export const PriorityForm = withForm({
               </>
             )}
           </form.Subscribe>
+
+          <AttachmentSection
+            ownerType="priority"
+            ownerId={ownerId}
+            initialAttachments={initialAttachments}
+          />
 
           <form.AppForm>
             <form.SubmitButton label={submitLabel} />

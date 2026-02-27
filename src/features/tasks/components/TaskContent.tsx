@@ -1,5 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import type { ReactNode } from 'react';
+import { AttachmentSummary } from '@/features/attachments/components/AttachmentSummary';
 import type { TaskForDate } from '@/shared/types/task';
 
 type TaskContentProps = {
@@ -28,6 +29,8 @@ export function TaskContent({ task, actions }: TaskContentProps) {
           {format(parseISO(task.scheduledDate), 'EEE, MMM d')}
         </p>
       )}
+
+      <AttachmentSummary attachments={task.attachments} />
     </div>
   );
 }

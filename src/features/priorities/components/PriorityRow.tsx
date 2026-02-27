@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { AttachmentSummary } from '@/features/attachments/components/AttachmentSummary';
 import { useSortableRowBindings } from '@/features/priorities/hooks/useSortableRowBindings';
 import type { PointerType } from '@/hooks/usePointerType';
 import { cn } from '@/lib/utils';
@@ -128,6 +129,8 @@ function ActivePriorityRow({
             {priority.note}
           </p>
         ) : null}
+
+        <AttachmentSummary attachments={priority.attachments} />
       </div>
     </div>
   );
@@ -175,6 +178,8 @@ function CompletedPriorityRow({
             {priority.note}
           </p>
         ) : null}
+
+        <AttachmentSummary attachments={priority.attachments} />
       </div>
     </div>
   );

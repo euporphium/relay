@@ -20,7 +20,7 @@ export const Route = createFileRoute('/priorities/create')({
 function RouteComponent() {
   const navigate = Route.useNavigate();
   const { returnTo } = Route.useSearch();
-  const { groups } = Route.useLoaderData();
+  const groups = Route.useLoaderData();
 
   const defaultValues: PriorityInput = {
     title: '',
@@ -40,5 +40,13 @@ function RouteComponent() {
     },
   });
 
-  return <PriorityForm form={form} groups={groups} submitLabel="Create" />;
+  return (
+    <PriorityForm
+      form={form}
+      groups={groups}
+      submitLabel="Create"
+      ownerId={undefined}
+      initialAttachments={[]}
+    />
+  );
 }

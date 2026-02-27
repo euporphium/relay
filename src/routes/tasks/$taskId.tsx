@@ -3,6 +3,7 @@ import { parseISO } from 'date-fns';
 import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
 import { TaskForm } from '@/features/tasks/forms/TaskForm';
+import { getAttachmentsByOwner } from '@/server/attachments/getAttachmentsByOwner';
 import { getTask } from '@/server/tasks/getTask';
 import { updateTask } from '@/server/tasks/updateTask';
 import type { Task } from '@/shared/types/task';
@@ -16,13 +17,18 @@ export const Route = createFileRoute('/tasks/$taskId')({
     returnTo: z.string().optional(),
   }),
   loader: async ({ params }) => {
-    const task = await getTask({ data: params.taskId });
+    const [task, attachments] = await Promise.all([
+      getTask({ data: params.taskId }),
+      getAttachmentsByOwner({
+        data: { ownerType: 'task', ownerId: params.taskId },
+      }),
+    ]);
 
     if (!task) {
       throw notFound();
     }
 
-    return { task };
+    return { task, attachments };
   },
   component: RouteComponent,
   notFoundComponent: () => (
@@ -34,7 +40,7 @@ export const Route = createFileRoute('/tasks/$taskId')({
 });
 
 function RouteComponent() {
-  const { task } = Route.useLoaderData();
+  const { task, attachments } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const { returnTo } = Route.useSearch();
 
@@ -50,7 +56,14 @@ function RouteComponent() {
     },
   });
 
-  return <TaskForm form={form} submitLabel="Save" />;
+  return (
+    <TaskForm
+      form={form}
+      submitLabel="Save"
+      ownerId={task.id}
+      initialAttachments={attachments}
+    />
+  );
 }
 
 function taskToFormDefaults(task: Task): TaskInput {

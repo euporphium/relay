@@ -1,5 +1,6 @@
 import type { PriorityState } from '@/domain/priority/priorityStates';
 import type { SharePermission } from '@/domain/share/sharePermissions';
+import type { Attachment } from '@/shared/types/attachment';
 
 export type Priority = {
   id: string;
@@ -9,6 +10,7 @@ export type Priority = {
   position: number;
   groupId: string | null;
   updatedAt: Date;
+  attachments?: Attachment[];
 };
 
 export type PriorityGroupAccess = {
