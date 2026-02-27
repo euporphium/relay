@@ -37,5 +37,12 @@ function RouteComponent() {
     },
   });
 
-  return <TaskForm form={form} submitLabel="Create" />;
+  return (
+    <TaskForm
+      form={form}
+      submitLabel="Create"
+      ownerId={undefined}
+      initialAttachments={[]}
+    />
+  );
 }

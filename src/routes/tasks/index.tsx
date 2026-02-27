@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import { format, parseISO } from 'date-fns';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -10,10 +11,13 @@ import { DayNavigator } from '@/features/calendar/DayNavigator';
 import { TaskList } from '@/features/tasks/components/TaskList';
 import { Route as TasksEditRoute } from '@/routes/tasks/$taskId';
 import { Route as TasksCreateRoute } from '@/routes/tasks/create';
+import { deleteTask as deleteTaskMutation } from '@/server/tasks/deleteTask';
 import { getTasksForDate } from '@/server/tasks/getTasksForDate';
 import { resolveTask } from '@/server/tasks/resolveTask';
 import { undoTaskResolution } from '@/server/tasks/undoTaskResolution';
 import type { ResolveTaskResult } from '@/shared/types/task';
+
+const DELETE_TOAST_DURATION_MS = 5000;
 
 export const Route = createFileRoute('/tasks/')({
   validateSearch: z.object({
@@ -42,9 +46,16 @@ export const Route = createFileRoute('/tasks/')({
 function RouteComponent() {
   const resolveTaskFn = useServerFn(resolveTask);
   const undoTaskResolutionFn = useServerFn(undoTaskResolution);
+  const deleteTaskFn = useServerFn(deleteTaskMutation);
   const { tasks, targetDate } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const router = useRouter();
+  const deleteTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   if (!targetDate) {
     return <DayNavigator />;
@@ -52,8 +63,11 @@ function RouteComponent() {
 
   const day = createCalendarDay(targetDate);
 
-  const activeTasks = tasks.filter((task) => task.status === 'active');
-  const upcomingTasks = tasks.filter((task) => task.status === 'upcoming');
+  const visibleTasks = tasks.filter((task) => !pendingDeleteIds.has(task.id));
+  const activeTasks = visibleTasks.filter((task) => task.status === 'active');
+  const upcomingTasks = visibleTasks.filter(
+    (task) => task.status === 'upcoming',
+  );
 
   async function resolve(id: string, resolutionType: TaskResolutionType) {
     const label = resolutionType === 'completed' ? 'completed' : 'skipped';
@@ -80,7 +94,7 @@ function RouteComponent() {
           cancel: nextTask
             ? {
                 label: 'Edit',
-                onClick: () => edit(nextTask.id),
+                onClick: () => editTask(nextTask.id),
               }
             : undefined,
         },
@@ -107,8 +121,62 @@ function RouteComponent() {
     }
   }
 
-  function edit(id: string) {
+  function editTask(id: string) {
     navigate({ to: TasksEditRoute.to, params: { taskId: id } });
+  }
+
+  function undoDelete(id: string) {
+    const timer = deleteTimersRef.current.get(id);
+
+    if (!timer) {
+      return;
+    }
+
+    clearTimeout(timer);
+    deleteTimersRef.current.delete(id);
+    setPendingDeleteIds((current) => {
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  async function commitDelete(id: string) {
+    try {
+      await deleteTaskFn({ data: id });
+    } catch {
+      toast.error('Failed to delete task');
+    } finally {
+      deleteTimersRef.current.delete(id);
+      setPendingDeleteIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+      void router.invalidate();
+    }
+  }
+
+  function deleteTask(id: string) {
+    if (deleteTimersRef.current.has(id)) {
+      return;
+    }
+
+    setPendingDeleteIds((current) => new Set(current).add(id));
+
+    const timer = setTimeout(() => {
+      void commitDelete(id);
+    }, DELETE_TOAST_DURATION_MS);
+
+    deleteTimersRef.current.set(id, timer);
+
+    toast('Task deleted', {
+      duration: DELETE_TOAST_DURATION_MS,
+      action: {
+        label: 'Undo',
+        onClick: () => undoDelete(id),
+      },
+    });
   }
 
   return (
@@ -133,9 +201,10 @@ function RouteComponent() {
         emptyMessage="No active tasks"
         tasks={activeTasks}
         actions={{
-          complete: (id) => resolve(id, 'completed'),
-          skip: (id) => resolve(id, 'skipped'),
-          edit,
+          completeTask: (id) => resolve(id, 'completed'),
+          skipTask: (id) => resolve(id, 'skipped'),
+          editTask,
+          deleteTask,
         }}
       />
 
@@ -143,7 +212,7 @@ function RouteComponent() {
         title="Upcoming Tasks"
         emptyMessage="No upcoming tasks"
         tasks={upcomingTasks}
-        actions={{ edit }}
+        actions={{ editTask, deleteTask }}
       />
     </div>
   );

@@ -33,15 +33,13 @@ export const getPriorityGroups = createServerFn()
       )
       .orderBy(priorityGroups.name);
 
-    return {
-      groups: groups
-        .filter((group) => {
-          if (group.ownerId === userId) return true;
-          return group.permission === 'edit';
-        })
-        .map((group) => ({
-          id: group.id,
-          name: group.name,
-        })),
-    };
+    return groups
+      .filter((group) => {
+        if (group.ownerId === userId) return true;
+        return group.permission === 'edit';
+      })
+      .map((group) => ({
+        id: group.id,
+        name: group.name,
+      }));
   });

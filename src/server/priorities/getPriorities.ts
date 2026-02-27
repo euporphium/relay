@@ -1,7 +1,8 @@
 import { createServerFn } from '@tanstack/react-start';
-import { and, eq, inArray, isNull, or } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, or } from 'drizzle-orm';
 import { db } from '@/db';
 import {
+  attachments,
   priorities,
   priorityGroupShares,
   priorityGroups,
@@ -75,6 +76,30 @@ export const getPriorities = createServerFn()
       with: { group: true },
     });
 
+    const priorityIds = rows.map((row) => row.id);
+    const priorityAttachments =
+      priorityIds.length > 0
+        ? await db.query.attachments.findMany({
+            where: and(
+              eq(attachments.userId, userId),
+              eq(attachments.ownerType, 'priority'),
+              inArray(attachments.ownerId, priorityIds),
+              isNull(attachments.deletedAt),
+            ),
+            orderBy: [asc(attachments.position), asc(attachments.createdAt)],
+          })
+        : [];
+    const attachmentsByPriorityId = new Map<
+      string,
+      typeof priorityAttachments
+    >();
+
+    for (const attachment of priorityAttachments) {
+      const list = attachmentsByPriorityId.get(attachment.ownerId) ?? [];
+      list.push(attachment);
+      attachmentsByPriorityId.set(attachment.ownerId, list);
+    }
+
     const groups = buildPriorityGroups(
       rows.map((row) => ({
         id: row.id,
@@ -88,6 +113,7 @@ export const getPriorities = createServerFn()
           ? (accessByGroupId.get(row.groupId) ?? undefined)
           : undefined,
         updatedAt: row.updatedAt,
+        attachments: attachmentsByPriorityId.get(row.id) ?? [],
       })),
     );
 

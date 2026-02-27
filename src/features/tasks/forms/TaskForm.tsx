@@ -12,11 +12,25 @@ import {
   FieldTitle,
 } from '@/components/ui/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { AttachmentSection } from '@/features/attachments/components/AttachmentSection';
 import { getFieldValidator } from '@/lib/utils';
+import type { Attachment } from '@/shared/types/attachment';
 import {
   type TaskInput,
   taskInputSchema,
 } from '@/shared/validation/taskInput.schema';
+
+type TaskFormProps = {
+  submitLabel: string;
+  ownerId?: string;
+  initialAttachments: Attachment[];
+};
+
+const formProps: TaskFormProps = {
+  submitLabel: '',
+  ownerId: undefined,
+  initialAttachments: [],
+};
 
 export const TaskForm = withForm({
   defaultValues: {
@@ -26,10 +40,8 @@ export const TaskForm = withForm({
     preview: undefined,
     reschedule: undefined,
   } as TaskInput,
-  props: {
-    submitLabel: '',
-  },
-  render: ({ form, submitLabel }) => (
+  props: formProps,
+  render: ({ form, submitLabel, ownerId, initialAttachments }) => (
     <form
       className="p-4 max-w-4xl mx-auto"
       onSubmit={async (e) => {
@@ -144,6 +156,14 @@ export const TaskForm = withForm({
             </ToggleableSection>
           )}
         </form.AppField>
+
+        <FieldSeparator />
+
+        <AttachmentSection
+          ownerType="task"
+          ownerId={ownerId}
+          initialAttachments={initialAttachments}
+        />
 
         <FieldSeparator />
 

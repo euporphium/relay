@@ -1,5 +1,6 @@
 import type { CalendarIntervalUnit } from '@/domain/calendar/calendarInterval';
 import type { RescheduleAnchor } from '@/domain/task/rescheduleAnchors';
+import type { Attachment } from '@/shared/types/attachment';
 
 export type Task = {
   id: string;
@@ -15,6 +16,7 @@ export type Task = {
   createdAt: Date;
   updatedAt: Date;
   resolvedAt: Date | null;
+  attachments?: Attachment[];
 };
 
 export type TaskForDate = Task & {

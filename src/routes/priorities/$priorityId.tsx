@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from '@tanstack/react-router';
 import { z } from 'zod';
 import { useAppForm } from '@/components/form/hooks';
 import { PriorityForm } from '@/features/priorities/forms/PriorityForm';
+import { getAttachmentsByOwner } from '@/server/attachments/getAttachmentsByOwner';
 import { getPriority } from '@/server/priorities/getPriority';
 import { getPriorityGroups } from '@/server/priorities/getPriorityGroups';
 import { updatePriority } from '@/server/priorities/updatePriority';
@@ -13,16 +14,19 @@ export const Route = createFileRoute('/priorities/$priorityId')({
     returnTo: z.string().optional(),
   }),
   loader: async ({ params }) => {
-    const [priority, { groups }] = await Promise.all([
+    const [priority, groups, attachments] = await Promise.all([
       getPriority({ data: params.priorityId }),
       getPriorityGroups(),
+      getAttachmentsByOwner({
+        data: { ownerType: 'priority', ownerId: params.priorityId },
+      }),
     ]);
 
     if (!priority) {
       throw notFound();
     }
 
-    return { priority, groups };
+    return { priority, groups, attachments };
   },
   component: RouteComponent,
   notFoundComponent: () => (
@@ -36,7 +40,7 @@ export const Route = createFileRoute('/priorities/$priorityId')({
 function RouteComponent() {
   const navigate = Route.useNavigate();
   const { returnTo } = Route.useSearch();
-  const { priority, groups } = Route.useLoaderData();
+  const { priority, groups, attachments } = Route.useLoaderData();
 
   const form = useAppForm({
     defaultValues: priorityToFormDefaults(priority),
@@ -50,7 +54,15 @@ function RouteComponent() {
     },
   });
 
-  return <PriorityForm form={form} groups={groups} submitLabel="Save" />;
+  return (
+    <PriorityForm
+      form={form}
+      groups={groups}
+      submitLabel="Save"
+      ownerId={priority.id}
+      initialAttachments={attachments}
+    />
+  );
 }
 
 function priorityToFormDefaults(priority: {

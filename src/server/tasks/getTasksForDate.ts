@@ -1,8 +1,8 @@
 import { createServerFn } from '@tanstack/react-start';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { tasks } from '@/db/schema';
+import { attachments, tasks } from '@/db/schema';
 import { authMiddleware } from '@/server/middleware/auth';
 import type { TaskForDate } from '@/shared/types/task';
 
@@ -20,7 +20,7 @@ export const getTasksForDate = createServerFn()
         )::interval
     `;
 
-    return db.query.tasks.findMany({
+    const rows = (await db.query.tasks.findMany({
       where: and(
         eq(tasks.userId, userId),
         isNull(tasks.resolvedAt),
@@ -37,5 +37,33 @@ export const getTasksForDate = createServerFn()
           end
         `.as('status'),
       },
-    }) as Promise<TaskForDate[]>;
+    })) as TaskForDate[];
+
+    const taskIds = rows.map((row) => row.id);
+
+    if (taskIds.length === 0) {
+      return rows;
+    }
+
+    const taskAttachments = await db.query.attachments.findMany({
+      where: and(
+        eq(attachments.userId, userId),
+        eq(attachments.ownerType, 'task'),
+        inArray(attachments.ownerId, taskIds),
+        isNull(attachments.deletedAt),
+      ),
+      orderBy: [asc(attachments.position), asc(attachments.createdAt)],
+    });
+
+    const attachmentsByTaskId = new Map<string, typeof taskAttachments>();
+    for (const attachment of taskAttachments) {
+      const list = attachmentsByTaskId.get(attachment.ownerId) ?? [];
+      list.push(attachment);
+      attachmentsByTaskId.set(attachment.ownerId, list);
+    }
+
+    return rows.map((row) => ({
+      ...row,
+      attachments: attachmentsByTaskId.get(row.id) ?? [],
+    }));
   });

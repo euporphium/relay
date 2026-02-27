@@ -1,5 +1,6 @@
 import { isNull, relations } from 'drizzle-orm';
 import {
+  bigint,
   date,
   index,
   integer,
@@ -10,6 +11,8 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { attachmentOwnerTypes } from '@/domain/attachment/attachmentOwnerTypes';
+import { attachmentTypes } from '@/domain/attachment/attachmentTypes';
 import { calendarIntervalUnits } from '@/domain/calendar/calendarInterval';
 import { priorityStates } from '@/domain/priority/priorityStates';
 import { shareInvitationStatuses } from '@/domain/share/shareInvitationStatuses';
@@ -31,6 +34,11 @@ export const taskResolutionTypeEnum = pgEnum(
 );
 
 export const priorityStateEnum = pgEnum('priority_state', priorityStates);
+export const attachmentOwnerTypeEnum = pgEnum(
+  'attachment_owner_type',
+  attachmentOwnerTypes,
+);
+export const attachmentTypeEnum = pgEnum('attachment_type', attachmentTypes);
 
 export const sharePermissionEnum = pgEnum('share_permission', sharePermissions);
 export const shareInvitationStatusEnum = pgEnum(
@@ -215,6 +223,53 @@ export const priorities = pgTable(
   ],
 );
 
+export const attachments = pgTable(
+  'attachments',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+
+    ownerType: attachmentOwnerTypeEnum('owner_type').notNull(),
+    ownerId: uuid('owner_id').notNull(),
+    type: attachmentTypeEnum('type').notNull(),
+
+    title: text('title'),
+    note: text('note'),
+    position: integer('position').notNull().default(0),
+
+    url: text('url'),
+    domain: text('domain'),
+    description: text('description'),
+    previewImageUrl: text('preview_image_url'),
+    fetchedAt: timestamp('fetched_at'),
+
+    storageKey: text('storage_key'),
+    mimeType: text('mime_type'),
+    byteSize: bigint('byte_size', { mode: 'number' }),
+    width: integer('width'),
+    height: integer('height'),
+
+    deletedAt: timestamp('deleted_at'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('attachments_user_id_idx').on(table.userId),
+    index('attachments_owner_idx').on(table.ownerType, table.ownerId),
+    index('attachments_owner_position_idx').on(
+      table.ownerType,
+      table.ownerId,
+      table.position,
+    ),
+    index('attachments_owner_active_idx')
+      .on(table.ownerType, table.ownerId)
+      .where(isNull(table.deletedAt)),
+  ],
+);
+
 export const priorityGroupsRelations = relations(
   priorityGroups,
   ({ one, many }) => ({
@@ -253,5 +308,12 @@ export const prioritiesRelations = relations(priorities, ({ one }) => ({
   group: one(priorityGroups, {
     fields: [priorities.groupId],
     references: [priorityGroups.id],
+  }),
+}));
+
+export const attachmentsRelations = relations(attachments, ({ one }) => ({
+  user: one(user, {
+    fields: [attachments.userId],
+    references: [user.id],
   }),
 }));
