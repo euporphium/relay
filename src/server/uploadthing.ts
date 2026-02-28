@@ -1,5 +1,9 @@
 import { and, eq, isNull, sql } from 'drizzle-orm';
-import { createUploadthing, type FileRouter } from 'uploadthing/server';
+import {
+  createUploadthing,
+  type FileRouter,
+  UTFiles,
+} from 'uploadthing/server';
 import { z } from 'zod';
 import { auth } from '@/app/auth';
 import { db } from '@/db';
@@ -22,6 +26,17 @@ type UploadInput = {
   title?: string;
   note?: string;
 };
+
+function toUserScopedUploadName(userId: string, fileName: string) {
+  const normalizedFileName =
+    fileName.split(/[\\/]/).filter(Boolean).pop() ?? 'file';
+
+  return `${userId}/${normalizedFileName}`;
+}
+
+function getDisplayFileName(fileName: string) {
+  return fileName.split('/').filter(Boolean).pop() ?? fileName;
+}
 
 async function assertStorageLimit(userId: string, incomingBytes: number) {
   const [usageRow] = await db
@@ -76,7 +91,7 @@ async function createUploadedAttachment(params: {
     ownerType,
     ownerId,
     type,
-    title: title || file.name,
+    title: title || getDisplayFileName(file.name),
     note: note || null,
     position: (positionRow?.max ?? -1) + 1,
     url: file.ufsUrl || file.url || file.appUrl || null,
@@ -115,6 +130,10 @@ export const uploadRouter = {
       await assertStorageLimit(userId, incomingBytes);
 
       return {
+        [UTFiles]: files.map((file) => ({
+          ...file,
+          name: toUserScopedUploadName(userId, file.name),
+        })),
         userId,
         ownerType: input.ownerType,
         ownerId: input.ownerId,
@@ -160,6 +179,10 @@ export const uploadRouter = {
       await assertStorageLimit(userId, incomingBytes);
 
       return {
+        [UTFiles]: files.map((file) => ({
+          ...file,
+          name: toUserScopedUploadName(userId, file.name),
+        })),
         userId,
         ownerType: input.ownerType,
         ownerId: input.ownerId,
