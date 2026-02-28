@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { auth } from '@/app/auth';
 import { db } from '@/db';
 import { attachments } from '@/db/schema';
-import { assertAttachmentOwnerBelongsToUser } from '@/server/attachments/attachmentOwners';
+import { assertAttachmentOwnerAccess } from '@/server/attachments/attachmentOwners';
 
 const f = createUploadthing();
 
@@ -63,7 +63,6 @@ async function createUploadedAttachment(params: {
     .from(attachments)
     .where(
       and(
-        eq(attachments.userId, userId),
         eq(attachments.ownerType, ownerType),
         eq(attachments.ownerId, ownerId),
         isNull(attachments.deletedAt),
@@ -105,10 +104,11 @@ export const uploadRouter = {
         throw new Error('Unauthorized');
       }
 
-      await assertAttachmentOwnerBelongsToUser({
+      await assertAttachmentOwnerAccess({
         ownerType: input.ownerType,
         ownerId: input.ownerId,
         userId,
+        requiredAccess: 'edit',
       });
 
       const incomingBytes = files.reduce((sum, file) => sum + file.size, 0);
@@ -149,10 +149,11 @@ export const uploadRouter = {
         throw new Error('Unauthorized');
       }
 
-      await assertAttachmentOwnerBelongsToUser({
+      await assertAttachmentOwnerAccess({
         ownerType: input.ownerType,
         ownerId: input.ownerId,
         userId,
+        requiredAccess: 'edit',
       });
 
       const incomingBytes = files.reduce((sum, file) => sum + file.size, 0);

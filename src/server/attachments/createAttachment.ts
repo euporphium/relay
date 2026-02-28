@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { attachments } from '@/db/schema';
 import { attachmentOwnerTypes } from '@/domain/attachment/attachmentOwnerTypes';
-import { assertAttachmentOwnerBelongsToUser } from '@/server/attachments/attachmentOwners';
+import { assertAttachmentOwnerAccess } from '@/server/attachments/attachmentOwners';
 import {
   fetchLinkMetadata,
   normalizeAttachmentLink,
@@ -33,10 +33,11 @@ export const createAttachment = createServerFn({ method: 'POST' })
   .handler(async ({ data, context }) => {
     const { userId } = context;
 
-    await assertAttachmentOwnerBelongsToUser({
+    await assertAttachmentOwnerAccess({
       ownerType: data.ownerType,
       ownerId: data.ownerId,
       userId,
+      requiredAccess: 'edit',
     });
 
     const now = new Date();
@@ -46,7 +47,6 @@ export const createAttachment = createServerFn({ method: 'POST' })
       .from(attachments)
       .where(
         and(
-          eq(attachments.userId, userId),
           eq(attachments.ownerType, data.ownerType),
           eq(attachments.ownerId, data.ownerId),
           isNull(attachments.deletedAt),

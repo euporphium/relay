@@ -4,6 +4,7 @@ import { UTApi } from 'uploadthing/server';
 import { z } from 'zod';
 import { db } from '@/db';
 import { attachments } from '@/db/schema';
+import { assertAttachmentOwnerAccess } from '@/server/attachments/attachmentOwners';
 import { authMiddleware } from '@/server/middleware/auth';
 
 const deleteAttachmentSchema = z.uuid();
@@ -18,7 +19,6 @@ export const deleteAttachment = createServerFn({ method: 'POST' })
     const attachment = await db.query.attachments.findFirst({
       where: and(
         eq(attachments.id, attachmentId),
-        eq(attachments.userId, userId),
         isNull(attachments.deletedAt),
       ),
     });
@@ -27,12 +27,12 @@ export const deleteAttachment = createServerFn({ method: 'POST' })
       throw new Error('Attachment not found');
     }
 
-    if (
-      (attachment.type === 'image' || attachment.type === 'file') &&
-      attachment.storageKey
-    ) {
-      await utApi.deleteFiles(attachment.storageKey);
-    }
+    await assertAttachmentOwnerAccess({
+      ownerType: attachment.ownerType,
+      ownerId: attachment.ownerId,
+      userId,
+      requiredAccess: 'edit',
+    });
 
     await db
       .update(attachments)
@@ -41,4 +41,11 @@ export const deleteAttachment = createServerFn({ method: 'POST' })
         updatedAt: new Date(),
       })
       .where(eq(attachments.id, attachmentId));
+
+    if (
+      (attachment.type === 'image' || attachment.type === 'file') &&
+      attachment.storageKey
+    ) {
+      await utApi.deleteFiles(attachment.storageKey);
+    }
   });

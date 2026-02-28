@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { db } from '@/db';
 import { attachments } from '@/db/schema';
 import { attachmentOwnerTypes } from '@/domain/attachment/attachmentOwnerTypes';
+import { assertAttachmentOwnerAccess } from '@/server/attachments/attachmentOwners';
 import { authMiddleware } from '@/server/middleware/auth';
 
 const getAttachmentsByOwnerSchema = z.object({
@@ -15,13 +16,17 @@ export const getAttachmentsByOwner = createServerFn()
   .middleware([authMiddleware])
   .inputValidator(getAttachmentsByOwnerSchema)
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    await assertAttachmentOwnerAccess({
+      ownerType: data.ownerType,
+      ownerId: data.ownerId,
+      userId: context.userId,
+      requiredAccess: 'view',
+    });
 
     return db.query.attachments.findMany({
       where: and(
         eq(attachments.ownerType, data.ownerType),
         eq(attachments.ownerId, data.ownerId),
-        eq(attachments.userId, userId),
         isNull(attachments.deletedAt),
       ),
       orderBy: [asc(attachments.position), asc(attachments.createdAt)],

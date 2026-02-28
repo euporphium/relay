@@ -81,7 +81,6 @@ export const getPriorities = createServerFn()
       priorityIds.length > 0
         ? await db.query.attachments.findMany({
             where: and(
-              eq(attachments.userId, userId),
               eq(attachments.ownerType, 'priority'),
               inArray(attachments.ownerId, priorityIds),
               isNull(attachments.deletedAt),

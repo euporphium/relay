@@ -1,11 +1,11 @@
 import { createServerFn } from '@tanstack/react-start';
-import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { attachments } from '@/db/schema';
 import { attachmentOwnerTypes } from '@/domain/attachment/attachmentOwnerTypes';
 import { validateAttachmentReorder } from '@/domain/attachment/validateAttachmentReorder';
-import { assertAttachmentOwnerBelongsToUser } from '@/server/attachments/attachmentOwners';
+import { assertAttachmentOwnerAccess } from '@/server/attachments/attachmentOwners';
 import { authMiddleware } from '@/server/middleware/auth';
 
 const reorderAttachmentsSchema = z.object({
@@ -20,15 +20,15 @@ export const reorderAttachments = createServerFn({ method: 'POST' })
   .handler(async ({ data, context }) => {
     const { userId } = context;
 
-    await assertAttachmentOwnerBelongsToUser({
+    await assertAttachmentOwnerAccess({
       ownerType: data.ownerType,
       ownerId: data.ownerId,
       userId,
+      requiredAccess: 'edit',
     });
 
     const rows = await db.query.attachments.findMany({
       where: and(
-        eq(attachments.userId, userId),
         eq(attachments.ownerType, data.ownerType),
         eq(attachments.ownerId, data.ownerId),
         isNull(attachments.deletedAt),
@@ -56,11 +56,9 @@ export const reorderAttachments = createServerFn({ method: 'POST' })
           .where(
             and(
               eq(attachments.id, id),
-              eq(attachments.userId, userId),
               eq(attachments.ownerType, data.ownerType),
               eq(attachments.ownerId, data.ownerId),
               isNull(attachments.deletedAt),
-              inArray(attachments.id, data.orderedIds),
             ),
           );
       }

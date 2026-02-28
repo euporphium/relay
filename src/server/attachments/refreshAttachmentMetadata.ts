@@ -3,6 +3,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
 import { attachments } from '@/db/schema';
+import { assertAttachmentOwnerAccess } from '@/server/attachments/attachmentOwners';
 import { fetchLinkMetadata } from '@/server/attachments/linkMetadata';
 import { authMiddleware } from '@/server/middleware/auth';
 
@@ -17,13 +18,23 @@ export const refreshAttachmentMetadata = createServerFn({ method: 'POST' })
     const attachment = await db.query.attachments.findFirst({
       where: and(
         eq(attachments.id, attachmentId),
-        eq(attachments.userId, userId),
         eq(attachments.type, 'link'),
         isNull(attachments.deletedAt),
       ),
     });
 
-    if (!attachment?.url) {
+    if (!attachment) {
+      throw new Error('Attachment not found');
+    }
+
+    await assertAttachmentOwnerAccess({
+      ownerType: attachment.ownerType,
+      ownerId: attachment.ownerId,
+      userId,
+      requiredAccess: 'edit',
+    });
+
+    if (!attachment.url) {
       throw new Error('Attachment not found');
     }
 
@@ -32,7 +43,7 @@ export const refreshAttachmentMetadata = createServerFn({ method: 'POST' })
     const [updated] = await db
       .update(attachments)
       .set({
-        title: metadata.title ?? attachment.title,
+        title: attachment.title ?? metadata.title,
         url: metadata.canonicalUrl,
         domain: metadata.domain,
         description: metadata.description,
