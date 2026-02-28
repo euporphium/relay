@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import {
+  CheckCircleIcon,
   DotsSixVerticalIcon,
   DotsThreeVerticalIcon,
 } from '@phosphor-icons/react';
@@ -17,6 +17,7 @@ import {
 import { AttachmentSummary } from '@/features/attachments/components/AttachmentSummary';
 import { useSortableRowBindings } from '@/features/priorities/hooks/useSortableRowBindings';
 import type { PointerType } from '@/hooks/usePointerType';
+import { useSwipeToComplete } from '@/hooks/useSwipeToComplete';
 import { cn } from '@/lib/utils';
 import type { Priority } from '@/shared/types/priority';
 
@@ -266,6 +267,24 @@ export function SortablePriorityRow({
   onEdit,
   pointerType,
 }: SortablePriorityRowProps) {
+  const callHandlers = <T,>(
+    ...handlers: Array<((event: T) => void) | undefined>
+  ) => {
+    if (handlers.every((handler) => !handler)) return undefined;
+    return (event: T) => {
+      for (const handler of handlers) {
+        handler?.(event);
+      }
+    };
+  };
+
+  const isCoarsePointer = pointerType === 'coarse';
+  const canSwipeToComplete = isCoarsePointer && priority.state === 'active';
+  const swipe = useSwipeToComplete({
+    enabled: canSwipeToComplete,
+    onComplete: () => onChangeState(priority.id, 'completed'),
+  });
+
   const {
     attributes,
     listeners,
@@ -273,12 +292,22 @@ export function SortablePriorityRow({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: priority.id });
+  } = useSortable({
+    id: priority.id,
+    disabled: swipe.disableSortable,
+  });
 
+  const sortableX = transform?.x ?? 0;
+  const sortableY = transform?.y ?? 0;
+  const composedTransform = `translate3d(${sortableX + swipe.horizontalOffset}px, ${sortableY}px, 0)`;
+
+  // Compose dnd-kit's sortable transform with local horizontal swipe offset so
+  // both interactions render from one transform source.
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: composedTransform,
+    transition: swipe.transitionOverride ?? transition,
   };
+
   const bindings = useSortableRowBindings({
     pointerType,
     setNodeRef,
@@ -287,15 +316,89 @@ export function SortablePriorityRow({
     listeners,
   });
 
+  const coarseContainerProps = isCoarsePointer
+    ? {
+        ref: setNodeRef,
+        style: {
+          ...style,
+          touchAction: swipe.axisLock === 'horizontal' ? 'none' : 'pan-y',
+        },
+        className: cn('relative bg-card', isDragging ? 'z-50' : 'z-10'),
+        ...attributes,
+        ...(swipe.disableSortable ? {} : (listeners ?? {})),
+        onPointerDown: callHandlers(
+          swipe.disableSortable ? undefined : listeners?.onPointerDown,
+          swipe.pointerHandlers.onPointerDown,
+        ),
+        onPointerMove: callHandlers(
+          swipe.disableSortable ? undefined : listeners?.onPointerMove,
+          swipe.pointerHandlers.onPointerMove,
+        ),
+        onPointerUp: callHandlers(
+          swipe.disableSortable ? undefined : listeners?.onPointerUp,
+          swipe.pointerHandlers.onPointerUp,
+        ),
+        onPointerCancel: callHandlers(
+          swipe.disableSortable ? undefined : listeners?.onPointerCancel,
+          swipe.pointerHandlers.onPointerCancel,
+        ),
+        onLostPointerCapture: callHandlers(
+          swipe.disableSortable ? undefined : listeners?.onLostPointerCapture,
+          swipe.pointerHandlers.onLostPointerCapture,
+        ),
+      }
+    : undefined;
+
+  const isHorizontalPreview =
+    canSwipeToComplete &&
+    swipe.axisLock === 'horizontal' &&
+    swipe.isInteracting &&
+    swipe.horizontalOffset > 0;
+  const previewBackgroundClass = isHorizontalPreview
+    ? swipe.isCommitPreview
+      ? 'bg-success/20'
+      : 'bg-success/10'
+    : 'bg-transparent';
+  const checkPreviewClass = swipe.isCommitPreview
+    ? 'text-success opacity-100 dark:text-success'
+    : 'text-success/80 opacity-70 dark:text-success/80';
+  const containerProps = coarseContainerProps ?? {
+    ...bindings.containerProps,
+    className: cn(isDragging && 'relative z-50'),
+  };
+
   return (
-    <PriorityRow
-      priority={priority}
-      onChangeState={onChangeState}
-      onEdit={onEdit}
-      isDragging={isDragging}
-      canEdit
-      containerProps={bindings.containerProps}
-      dragHandleProps={bindings.dragHandleProps}
-    />
+    <div className="relative rounded-lg">
+      <div
+        aria-hidden
+        className={cn(
+          'pointer-events-none absolute inset-0 rounded-lg transition-colors duration-150',
+          previewBackgroundClass,
+        )}
+      />
+
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-3 z-0 flex items-center"
+      >
+        {isHorizontalPreview ? (
+          <CheckCircleIcon
+            size={18}
+            weight="bold"
+            className={cn('transition-opacity duration-100', checkPreviewClass)}
+          />
+        ) : null}
+      </div>
+
+      <PriorityRow
+        priority={priority}
+        onChangeState={onChangeState}
+        onEdit={onEdit}
+        isDragging={isDragging}
+        canEdit
+        containerProps={containerProps}
+        dragHandleProps={bindings.dragHandleProps}
+      />
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { CheckIcon, DotsThreeVerticalIcon } from '@phosphor-icons/react';
+import { CheckCircleIcon, DotsThreeVerticalIcon } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -7,9 +7,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePointerType } from '@/hooks/usePointerType';
+import { useSwipeToComplete } from '@/hooks/useSwipeToComplete';
 import { cn } from '@/lib/utils';
 import type { TaskForDate } from '@/shared/types/task';
-import { IconButton } from './IconButton';
 import { TaskContent } from './TaskContent';
 
 export type TaskActions = {
@@ -26,9 +27,41 @@ type TaskRowProps = {
 
 export function TaskRow({ task, actions }: TaskRowProps) {
   const { completeTask, skipTask, editTask, deleteTask } = actions;
+  const { pointerType } = usePointerType();
 
-  const canComplete = task.status === 'active' && completeTask;
+  const completeTaskAction =
+    task.status === 'active' ? completeTask : undefined;
+  const canComplete = Boolean(completeTaskAction);
   const canSkip = task.status === 'active' && skipTask;
+  const canSwipeToComplete = pointerType === 'coarse' && canComplete;
+  const swipe = useSwipeToComplete({
+    enabled: canSwipeToComplete,
+    onComplete: () => completeTaskAction?.(task.id),
+  });
+  const isHorizontalPreview =
+    canSwipeToComplete &&
+    swipe.axisLock === 'horizontal' &&
+    swipe.isInteracting &&
+    swipe.horizontalOffset > 0;
+  const previewBackgroundClass = isHorizontalPreview
+    ? swipe.isCommitPreview
+      ? 'bg-success/20'
+      : 'bg-success/10'
+    : 'bg-transparent';
+  const checkPreviewClass = swipe.isCommitPreview
+    ? 'text-success opacity-100 dark:text-success'
+    : 'text-success/80 opacity-70 dark:text-success/80';
+  const swipeContainerProps = canSwipeToComplete
+    ? {
+        style: {
+          transform: `translate3d(${swipe.horizontalOffset}px, 0, 0)`,
+          transition: swipe.transitionOverride,
+          touchAction: swipe.axisLock === 'horizontal' ? 'none' : 'pan-y',
+        },
+        ...swipe.pointerHandlers,
+      }
+    : undefined;
+
   const actionsMenu = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -37,6 +70,10 @@ export function TaskRow({ task, actions }: TaskRowProps) {
           size="icon-xs"
           variant="ghost"
           aria-label="More actions"
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
         >
           <DotsThreeVerticalIcon />
         </Button>
@@ -45,12 +82,17 @@ export function TaskRow({ task, actions }: TaskRowProps) {
         <DropdownMenuItem onClick={() => editTask(task.id)}>
           Edit
         </DropdownMenuItem>
+        {canComplete ? (
+          <DropdownMenuItem onClick={() => completeTaskAction?.(task.id)}>
+            Complete
+          </DropdownMenuItem>
+        ) : null}
         {canSkip ? (
           <DropdownMenuItem onClick={() => skipTask(task.id)}>
             Skip
           </DropdownMenuItem>
         ) : null}
-        {canSkip ? <DropdownMenuSeparator /> : null}
+        {canComplete || canSkip ? <DropdownMenuSeparator /> : null}
         <DropdownMenuItem
           variant="destructive"
           onClick={() => deleteTask(task.id)}
@@ -62,23 +104,37 @@ export function TaskRow({ task, actions }: TaskRowProps) {
   );
 
   return (
-    <div
-      className={cn(
-        'flex items-start gap-4 md:gap-6 rounded-lg border p-4',
-        'hover:bg-muted/40 transition-colors',
-      )}
-    >
-      {canComplete && (
-        <IconButton
-          label="Complete task"
-          onClick={() => completeTask(task.id)}
-          className="self-center"
-        >
-          <CheckIcon />
-        </IconButton>
-      )}
+    <div className="relative overflow-hidden rounded-lg">
+      <div
+        aria-hidden
+        className={cn(
+          'pointer-events-none absolute inset-0 rounded-lg transition-colors duration-150',
+          previewBackgroundClass,
+        )}
+      />
 
-      <TaskContent task={task} actions={actionsMenu} />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-3 z-0 flex items-center"
+      >
+        {isHorizontalPreview ? (
+          <CheckCircleIcon
+            size={18}
+            weight="bold"
+            className={cn('transition-opacity duration-100', checkPreviewClass)}
+          />
+        ) : null}
+      </div>
+
+      <div
+        className={cn(
+          'relative z-10 flex items-start gap-4 rounded-lg border bg-card p-4 transition-colors md:gap-6',
+          pointerType === 'fine' && 'hover:bg-muted/40',
+        )}
+        {...swipeContainerProps}
+      >
+        <TaskContent task={task} actions={actionsMenu} />
+      </div>
     </div>
   );
 }

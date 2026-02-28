@@ -45,7 +45,7 @@ export function AttachmentSummary({ attachments }: AttachmentSummaryProps) {
   return (
     <div className="mt-2 space-y-2">
       {summary.links.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <LinkSimpleIcon size={14} className="text-foreground" />
           {summary.links.slice(0, 3).map((link) => {
             const label = link.title || link.domain || link.url || 'Link';

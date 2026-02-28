@@ -1,3 +1,4 @@
+import type { Attachment } from '@/shared/types/attachment';
 import type {
   PriorityGroup,
   PriorityGroupAccess,
@@ -24,6 +25,7 @@ export type PriorityGroupRow = {
   id: string;
   title: string;
   note: string | null;
+  attachments?: Attachment[];
   state: PriorityState;
   position: number;
   groupId: string | null;
@@ -54,6 +56,7 @@ export function buildPriorityGroups(rows: PriorityGroupRow[]): PriorityGroup[] {
       id: row.id,
       title: row.title,
       note: row.note ?? null,
+      attachments: row.attachments ?? [],
       state: row.state,
       position: row.position,
       groupId,
