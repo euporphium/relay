@@ -14,21 +14,3 @@ export function buildAttachmentUploadName(
 ) {
   return `${attachmentId}${getFileExtension(fileName)}`;
 }
-
-export function buildMigratedStorageKey(
-  attachmentId: string,
-  existingKey: string,
-) {
-  return buildAttachmentUploadName(attachmentId, existingKey);
-}
-
-export function isStorageKeyForAttachment(
-  storageKey: string,
-  attachmentId: string,
-) {
-  if (storageKey === attachmentId) {
-    return true;
-  }
-
-  return storageKey.startsWith(`${attachmentId}.`);
-}
