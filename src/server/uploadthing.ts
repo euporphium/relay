@@ -2,6 +2,7 @@ import { and, eq, isNull, sql } from 'drizzle-orm';
 import {
   createUploadthing,
   type FileRouter,
+  UploadThingError,
   UTFiles,
 } from 'uploadthing/server';
 import { z } from 'zod';
@@ -14,6 +15,12 @@ import { buildAttachmentUploadName } from '@/server/attachments/storageKeyPaths'
 const f = createUploadthing();
 
 const USER_STORAGE_LIMIT_BYTES = 250 * 1024 * 1024;
+const UNAUTHORIZED_MESSAGE = 'Unauthorized';
+const STORAGE_LIMIT_MESSAGE =
+  'Upload rejected: storage limit exceeded. Your account limit is 250MB.';
+
+type UploadAttachmentType = 'image' | 'file';
+
 const uploadInputSchema = z.object({
   ownerType: z.enum(['task', 'priority']),
   ownerId: z.uuid(),
@@ -25,20 +32,92 @@ function getDisplayFileName(fileName: string) {
   return fileName.split('/').filter(Boolean).pop() ?? fileName;
 }
 
+function toUploadThingError(error: unknown) {
+  if (error instanceof UploadThingError) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return new UploadThingError(
+      process.env.NODE_ENV === 'production'
+        ? 'Failed to validate upload request.'
+        : error.message,
+    );
+  }
+
+  return new UploadThingError('Failed to validate upload request.');
+}
+
+async function buildUploadMetadata(params: {
+  req: Request;
+  files: readonly { name: string; size: number }[];
+  input: z.infer<typeof uploadInputSchema>;
+}) {
+  const { req, files, input } = params;
+  const session = await auth.api.getSession({ headers: req.headers });
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    throw new UploadThingError(UNAUTHORIZED_MESSAGE);
+  }
+
+  await assertAttachmentOwnerAccess({
+    ownerType: input.ownerType,
+    ownerId: input.ownerId,
+    userId,
+    requiredAccess: 'edit',
+  });
+
+  const incomingBytes = files.reduce((sum, file) => sum + file.size, 0);
+  await assertStorageLimit(userId, incomingBytes);
+
+  const attachmentId = crypto.randomUUID();
+
+  return {
+    attachmentId,
+    userId,
+    ownerType: input.ownerType,
+    ownerId: input.ownerId,
+    originalFileName: files[0]?.name ?? 'file',
+    title: input.title,
+    note: input.note,
+  };
+}
+
+async function buildUploadMetadataOrThrowUploadThingError(
+  params: Parameters<typeof buildUploadMetadata>[0],
+) {
+  try {
+    return await buildUploadMetadata(params);
+  } catch (error) {
+    throw toUploadThingError(error);
+  }
+}
+
 async function assertStorageLimit(userId: string, incomingBytes: number) {
   const [usageRow] = await db
     .select({
-      usedBytes: sql<number>`coalesce(sum(${attachments.byteSize}), 0)`,
+      usedBytes: sql<number>`coalesce(sum(${attachments.byteSize}), 0)::float8`,
     })
     .from(attachments)
     .where(and(eq(attachments.userId, userId), isNull(attachments.deletedAt)));
 
-  const usedBytes = usageRow?.usedBytes ?? 0;
-  if (usedBytes + incomingBytes > USER_STORAGE_LIMIT_BYTES) {
-    throw new Error(
-      'Upload rejected: storage limit exceeded. Your account limit is 250MB.',
-    );
+  const usedBytes = Number(usageRow?.usedBytes ?? 0);
+  const currentUsageBytes = Number.isFinite(usedBytes) ? usedBytes : 0;
+  if (currentUsageBytes + incomingBytes > USER_STORAGE_LIMIT_BYTES) {
+    throw new UploadThingError(STORAGE_LIMIT_MESSAGE);
   }
+}
+
+function remapUtFiles(
+  files: readonly { name: string; size: number }[],
+  attachmentId: string,
+) {
+  return files.map((file) => ({
+    ...file,
+    customId: attachmentId,
+    name: buildAttachmentUploadName(attachmentId, file.name),
+  }));
 }
 
 async function createUploadedAttachment(params: {
@@ -103,118 +182,61 @@ async function createUploadedAttachment(params: {
   });
 }
 
+function makeUploader(params: {
+  routeConfig: Parameters<typeof f>[0];
+  attachmentType: UploadAttachmentType;
+}) {
+  const { routeConfig, attachmentType } = params;
+
+  return f(routeConfig)
+    .input(uploadInputSchema)
+    .middleware(async ({ req, files, input }) => {
+      const metadata = await buildUploadMetadataOrThrowUploadThingError({
+        req,
+        files,
+        input,
+      });
+
+      return {
+        [UTFiles]: remapUtFiles(files, metadata.attachmentId),
+        ...metadata,
+      };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      await createUploadedAttachment({
+        attachmentId: metadata.attachmentId,
+        userId: metadata.userId,
+        ownerType: metadata.ownerType,
+        ownerId: metadata.ownerId,
+        type: attachmentType,
+        file,
+        originalFileName: metadata.originalFileName,
+        title: metadata.title,
+        note: metadata.note,
+      });
+    });
+}
+
 export const uploadRouter = {
-  imageUploader: f({
-    image: {
-      maxFileSize: '4MB',
-      maxFileCount: 1,
+  imageUploader: makeUploader({
+    routeConfig: {
+      image: {
+        maxFileSize: '4MB',
+        maxFileCount: 1,
+      },
     },
-  })
-    .input(uploadInputSchema)
-    .middleware(async ({ req, files, input }) => {
-      const session = await auth.api.getSession({ headers: req.headers });
-      const userId = session?.user?.id;
+    attachmentType: 'image',
+  }),
 
-      if (!userId) {
-        throw new Error('Unauthorized');
-      }
-
-      await assertAttachmentOwnerAccess({
-        ownerType: input.ownerType,
-        ownerId: input.ownerId,
-        userId,
-        requiredAccess: 'edit',
-      });
-
-      const incomingBytes = files.reduce((sum, file) => sum + file.size, 0);
-      await assertStorageLimit(userId, incomingBytes);
-
-      const attachmentId = crypto.randomUUID();
-
-      return {
-        [UTFiles]: files.map((file) => ({
-          ...file,
-          customId: attachmentId,
-          name: buildAttachmentUploadName(attachmentId, file.name),
-        })),
-        attachmentId,
-        userId,
-        ownerType: input.ownerType,
-        ownerId: input.ownerId,
-        originalFileName: files[0]?.name ?? 'file',
-        title: input.title,
-        note: input.note,
-      };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      await createUploadedAttachment({
-        attachmentId: metadata.attachmentId,
-        userId: metadata.userId,
-        ownerType: metadata.ownerType,
-        ownerId: metadata.ownerId,
-        type: 'image',
-        file,
-        originalFileName: metadata.originalFileName,
-        title: metadata.title,
-        note: metadata.note,
-      });
-    }),
-
-  fileUploader: f({
-    blob: {
-      maxFileSize: '64MB',
-      maxFileCount: 1,
+  fileUploader: makeUploader({
+    routeConfig: {
+      blob: {
+        maxFileSize: '64MB',
+        maxFileCount: 1,
+      },
     },
-  })
-    .input(uploadInputSchema)
-    .middleware(async ({ req, files, input }) => {
-      const session = await auth.api.getSession({ headers: req.headers });
-      const userId = session?.user?.id;
-
-      if (!userId) {
-        throw new Error('Unauthorized');
-      }
-
-      await assertAttachmentOwnerAccess({
-        ownerType: input.ownerType,
-        ownerId: input.ownerId,
-        userId,
-        requiredAccess: 'edit',
-      });
-
-      const incomingBytes = files.reduce((sum, file) => sum + file.size, 0);
-      await assertStorageLimit(userId, incomingBytes);
-
-      const attachmentId = crypto.randomUUID();
-
-      return {
-        [UTFiles]: files.map((file) => ({
-          ...file,
-          name: buildAttachmentUploadName(attachmentId, file.name),
-          customId: attachmentId,
-        })),
-        attachmentId,
-        userId,
-        ownerType: input.ownerType,
-        ownerId: input.ownerId,
-        originalFileName: files[0]?.name ?? 'file',
-        title: input.title,
-        note: input.note,
-      };
-    })
-    .onUploadComplete(async ({ metadata, file }) => {
-      await createUploadedAttachment({
-        attachmentId: metadata.attachmentId,
-        userId: metadata.userId,
-        ownerType: metadata.ownerType,
-        ownerId: metadata.ownerId,
-        type: 'file',
-        file,
-        originalFileName: metadata.originalFileName,
-        title: metadata.title,
-        note: metadata.note,
-      });
-    }),
+    attachmentType: 'file',
+  }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof uploadRouter;
