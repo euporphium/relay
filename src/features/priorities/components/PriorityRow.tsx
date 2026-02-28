@@ -267,13 +267,17 @@ export function SortablePriorityRow({
   onEdit,
   pointerType,
 }: SortablePriorityRowProps) {
+  type ComposableHandler<T> = ((event: T) => void) | Function | undefined;
+
   const callHandlers = <T,>(
-    ...handlers: Array<((event: T) => void) | undefined>
+    ...handlers: Array<ComposableHandler<T>>
   ) => {
     if (handlers.every((handler) => !handler)) return undefined;
     return (event: T) => {
       for (const handler of handlers) {
-        handler?.(event);
+        if (typeof handler === 'function') {
+          (handler as (event: T) => void)(event);
+        }
       }
     };
   };
