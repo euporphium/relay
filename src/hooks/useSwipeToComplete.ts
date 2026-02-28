@@ -312,36 +312,45 @@ export function useSwipeToComplete({
     ],
   );
 
-  const finalizeGesture = useCallback((event?: PointerEvent<HTMLElement>) => {
-    if (!enabled) return;
+  const finalizeGesture = useCallback(
+    (event?: PointerEvent<HTMLElement>) => {
+      if (!enabled) return;
 
-    const activeGesture = gestureRef.current;
-    if (!activeGesture) return;
-    if (event && event.pointerId !== activeGesture.pointerId) return;
+      const activeGesture = gestureRef.current;
+      if (!activeGesture) return;
+      if (event && event.pointerId !== activeGesture.pointerId) return;
 
-    const didCommit =
-      axisLockRef.current === 'horizontal' &&
-      horizontalOffsetRef.current >= activeGesture.rowWidth * commitRatio;
+      const didCommit =
+        axisLockRef.current === 'horizontal' &&
+        horizontalOffsetRef.current >= activeGesture.rowWidth * commitRatio;
 
-    if (didCommit) {
-      resetInteractionState();
+      if (didCommit) {
+        resetInteractionState();
+        setHorizontalOffset(0);
+        releasePointerCapture(activeGesture.pointerId);
+        onComplete();
+        return;
+      }
+
+      if (
+        axisLockRef.current === 'horizontal' &&
+        horizontalOffsetRef.current > 0
+      ) {
+        setIsSnapBackAnimating(true);
+      }
+
       setHorizontalOffset(0);
+      resetInteractionState();
       releasePointerCapture(activeGesture.pointerId);
-      onComplete();
-      return;
-    }
-
-    if (
-      axisLockRef.current === 'horizontal' &&
-      horizontalOffsetRef.current > 0
-    ) {
-      setIsSnapBackAnimating(true);
-    }
-
-    setHorizontalOffset(0);
-    resetInteractionState();
-    releasePointerCapture(activeGesture.pointerId);
-  }, [commitRatio, enabled, onComplete, releasePointerCapture, resetInteractionState]);
+    },
+    [
+      commitRatio,
+      enabled,
+      onComplete,
+      releasePointerCapture,
+      resetInteractionState,
+    ],
+  );
 
   const pointerHandlers = useMemo(
     () =>
