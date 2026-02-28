@@ -59,6 +59,26 @@ function getAttachmentLabel(attachment: Attachment) {
   return attachment.title || attachment.url || attachment.type;
 }
 
+function getAttachmentMeta(attachment: Attachment) {
+  const meta: string[] = [];
+
+  const isStorageAttachment =
+    attachment.type === 'image' || attachment.type === 'file';
+
+  if (isStorageAttachment && attachment.byteSize) {
+    const formattedSize = formatBytes(attachment.byteSize);
+    if (formattedSize) {
+      meta.push(formattedSize);
+    }
+  }
+
+  if (attachment.type === 'image' && attachment.width && attachment.height) {
+    meta.push(`${attachment.width} x ${attachment.height}`);
+  }
+
+  return meta;
+}
+
 function AttachmentPreview({ attachment }: { attachment: Attachment }) {
   if (attachment.type === 'image' && attachment.url) {
     return (
@@ -420,103 +440,96 @@ export function AttachmentSection({
         {sortedAttachments.length === 0 ? (
           <p className="text-xs text-muted-foreground">No attachments yet.</p>
         ) : (
-          sortedAttachments.map((attachment, index) => (
-            <div
-              key={attachment.id}
-              className="flex h-full flex-col rounded-lg border border-border/70 bg-card p-3 sm:p-4"
-            >
-              <div className="flex min-h-0 flex-1 flex-col gap-3">
-                <div className="min-w-0 space-y-2">
-                  <AttachmentPreview attachment={attachment} />
-                  <p className="text-sm font-medium min-w-0 wrap-break-word">
-                    {attachment.type === 'link' && attachment.url ? (
-                      <a
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow ugc"
-                        className="underline-offset-2 hover:underline focus-visible:underline"
-                      >
-                        {getAttachmentLabel(attachment)}
-                      </a>
-                    ) : (
-                      getAttachmentLabel(attachment)
-                    )}
-                  </p>
-                  {attachment.type === 'link' && attachment.url ? (
-                    <p className="text-xs text-muted-foreground min-w-0 wrap-break-word">
-                      <a
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow ugc"
-                        className="underline-offset-2 hover:underline focus-visible:underline"
-                      >
-                        {attachment.url}
-                      </a>
+          sortedAttachments.map((attachment, index) => {
+            const metadata = getAttachmentMeta(attachment);
+
+            return (
+              <div
+                key={attachment.id}
+                className="flex h-full flex-col rounded-lg border border-border/70 bg-card p-3 sm:p-4"
+              >
+                <div className="flex min-h-0 flex-1 flex-col gap-3">
+                  <div className="min-w-0 space-y-2">
+                    <AttachmentPreview attachment={attachment} />
+                    <p className="text-sm font-medium min-w-0 wrap-break-word">
+                      {attachment.type === 'link' && attachment.url ? (
+                        <a
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow ugc"
+                          className="underline-offset-2 hover:underline focus-visible:underline"
+                        >
+                          {getAttachmentLabel(attachment)}
+                        </a>
+                      ) : (
+                        getAttachmentLabel(attachment)
+                      )}
                     </p>
-                  ) : null}
-                  {attachment.description ? (
-                    <p className="text-xs text-muted-foreground min-w-0 wrap-break-word">
-                      {attachment.description}
-                    </p>
-                  ) : null}
-                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                    <span>{attachment.type}</span>
-                    {attachment.byteSize ? (
-                      <span>{formatBytes(attachment.byteSize)}</span>
+                    {attachment.description ? (
+                      <p className="text-xs text-muted-foreground min-w-0 wrap-break-word">
+                        {attachment.description}
+                      </p>
+                    ) : null}
+                    {metadata.length > 0 ? (
+                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                        {metadata.map((value) => (
+                          <span key={value}>{value}</span>
+                        ))}
+                      </div>
                     ) : null}
                   </div>
-                </div>
 
-                {canManage ? (
-                  <div className="mt-auto flex items-center justify-end gap-1 border-t border-border/50 pt-2">
-                    <Button
-                      type="button"
-                      size="icon-xs"
-                      variant="ghost"
-                      onClick={() => void handleMove(attachment.id, 'up')}
-                      disabled={index === 0}
-                      aria-label="Move attachment up"
-                    >
-                      <ArrowUpIcon />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon-xs"
-                      variant="ghost"
-                      onClick={() => void handleMove(attachment.id, 'down')}
-                      disabled={index === sortedAttachments.length - 1}
-                      aria-label="Move attachment down"
-                    >
-                      <ArrowDownIcon />
-                    </Button>
-                    {attachment.type === 'link' ? (
+                  {canManage ? (
+                    <div className="mt-auto flex items-center justify-end gap-1 border-t border-border/50 pt-2">
                       <Button
                         type="button"
                         size="icon-xs"
                         variant="ghost"
-                        onClick={() =>
-                          void handleRefreshMetadata(attachment.id)
-                        }
-                        disabled={Boolean(isRefreshingById[attachment.id])}
-                        aria-label="Refresh link metadata"
+                        onClick={() => void handleMove(attachment.id, 'up')}
+                        disabled={index === 0}
+                        aria-label="Move attachment up"
                       >
-                        <ArrowsClockwiseIcon />
+                        <ArrowUpIcon />
                       </Button>
-                    ) : null}
-                    <Button
-                      type="button"
-                      size="icon-xs"
-                      variant="ghost"
-                      onClick={() => void handleRemove(attachment)}
-                      aria-label="Remove attachment"
-                    >
-                      <TrashIcon />
-                    </Button>
-                  </div>
-                ) : null}
+                      <Button
+                        type="button"
+                        size="icon-xs"
+                        variant="ghost"
+                        onClick={() => void handleMove(attachment.id, 'down')}
+                        disabled={index === sortedAttachments.length - 1}
+                        aria-label="Move attachment down"
+                      >
+                        <ArrowDownIcon />
+                      </Button>
+                      {attachment.type === 'link' ? (
+                        <Button
+                          type="button"
+                          size="icon-xs"
+                          variant="ghost"
+                          onClick={() =>
+                            void handleRefreshMetadata(attachment.id)
+                          }
+                          disabled={Boolean(isRefreshingById[attachment.id])}
+                          aria-label="Refresh link metadata"
+                        >
+                          <ArrowsClockwiseIcon />
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        size="icon-xs"
+                        variant="ghost"
+                        onClick={() => void handleRemove(attachment)}
+                        aria-label="Remove attachment"
+                      >
+                        <TrashIcon />
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </section>
