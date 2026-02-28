@@ -84,20 +84,36 @@ function SignupPage() {
           >
             <FieldGroup>
               <form.AppField name="name">
-                {(field) => <field.Input label="Name" />}
+                {(field) => <field.Input label="Name" autoComplete="name" />}
               </form.AppField>
 
               <form.AppField name="email">
-                {(field) => <field.Input label="Email" type="email" />}
+                {(field) => (
+                  <field.Input
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                  />
+                )}
               </form.AppField>
 
               <form.AppField name="password">
-                {(field) => <field.Input label="Password" type="password" />}
+                {(field) => (
+                  <field.Input
+                    label="Password"
+                    type="password"
+                    autoComplete="new-password"
+                  />
+                )}
               </form.AppField>
 
               <form.AppField name="confirmPassword">
                 {(field) => (
-                  <field.Input label="Confirm password" type="password" />
+                  <field.Input
+                    label="Confirm password"
+                    type="password"
+                    autoComplete="new-password"
+                  />
                 )}
               </form.AppField>
 

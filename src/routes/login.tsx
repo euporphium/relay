@@ -74,11 +74,23 @@ function LoginPage() {
           >
             <FieldGroup>
               <form.AppField name="email">
-                {(field) => <field.Input label="Email" type="email" />}
+                {(field) => (
+                  <field.Input
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                  />
+                )}
               </form.AppField>
 
               <form.AppField name="password">
-                {(field) => <field.Input label="Password" type="password" />}
+                {(field) => (
+                  <field.Input
+                    label="Password"
+                    type="password"
+                    autoComplete="current-password"
+                  />
+                )}
               </form.AppField>
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
