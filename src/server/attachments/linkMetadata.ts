@@ -1,32 +1,38 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { type CheerioAPI, load } from 'cheerio';
 
-function extractMetaTagContent(
-  html: string,
+function trimToNull(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function extractFirstAttribute(
+  $: CheerioAPI,
   selectors: string[],
+  attribute: string,
 ): string | null {
   for (const selector of selectors) {
-    const regex = new RegExp(
-      `<meta[^>]+(?:property|name)=['"]${selector}['"][^>]+content=['"]([^'"]+)['"][^>]*>`,
-      'i',
-    );
-    const matched = html.match(regex);
-    if (matched?.[1]) {
-      return matched[1].trim();
+    const value = trimToNull($(selector).first().attr(attribute));
+    if (value) {
+      return value;
     }
   }
 
   return null;
 }
 
-function extractTitle(html: string): string | null {
-  const ogTitle = extractMetaTagContent(html, ['og:title', 'twitter:title']);
+function extractTitle($: CheerioAPI): string | null {
+  const ogTitle = extractFirstAttribute(
+    $,
+    ['meta[property="og:title"]', 'meta[name="twitter:title"]'],
+    'content',
+  );
   if (ogTitle) {
     return ogTitle;
   }
 
-  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-  return titleMatch?.[1]?.trim() ?? null;
+  return trimToNull($('title').first().text());
 }
 
 function isSupportedProtocol(protocol: string) {
@@ -271,17 +277,23 @@ export async function fetchLinkMetadata(rawUrl: string): Promise<LinkMetadata> {
 
   assertSupportedHtmlContentType(response);
   const html = await readTextWithLimit(response, MAX_HTML_BYTES);
+  const $ = load(html);
 
-  const title = extractTitle(html);
-  const description = extractMetaTagContent(html, [
-    'og:description',
-    'twitter:description',
-    'description',
-  ]);
-  const previewImageUrl = extractMetaTagContent(html, [
-    'og:image',
-    'twitter:image',
-  ]);
+  const title = extractTitle($);
+  const description = extractFirstAttribute(
+    $,
+    [
+      'meta[property="og:description"]',
+      'meta[name="twitter:description"]',
+      'meta[name="description"]',
+    ],
+    'content',
+  );
+  const previewImageUrl = extractFirstAttribute(
+    $,
+    ['meta[property="og:image"]', 'meta[name="twitter:image"]'],
+    'content',
+  );
 
   const previewUrl =
     previewImageUrl != null

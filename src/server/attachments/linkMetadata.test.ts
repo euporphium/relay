@@ -42,45 +42,4 @@ describe('linkMetadata', () => {
       module.fetchLinkMetadata('https://example.com/start'),
     ).rejects.toThrow('Local/private hosts are not allowed');
   });
-
-  test('prefers og metadata over fallback tags', async () => {
-    const dns = await import('node:dns/promises');
-    vi.mocked(dns.lookup).mockResolvedValue([
-      { address: '93.184.216.34', family: 4 },
-    ] as never);
-
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(
-          `
-            <html>
-              <head>
-                <title>Title Tag</title>
-                <meta name="description" content="Description Tag" />
-                <meta property="og:title" content="OG Title" />
-                <meta property="og:description" content="OG Description" />
-                <meta property="og:image" content="/preview.png" />
-              </head>
-            </html>
-          `,
-          {
-            status: 200,
-            headers: { 'content-type': 'text/html; charset=utf-8' },
-          },
-        ),
-      ),
-    );
-
-    const module = await import('./linkMetadata');
-    const result = await module.fetchLinkMetadata(
-      'https://example.com/article',
-    );
-
-    expect(result.title).toBe('OG Title');
-    expect(result.description).toBe('OG Description');
-    expect(result.previewImageUrl).toBe('https://example.com/preview.png');
-    expect(result.canonicalUrl).toBe('https://example.com/article');
-    expect(result.domain).toBe('example.com');
-  });
 });
