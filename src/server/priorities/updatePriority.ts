@@ -6,6 +6,7 @@ import { priorities, priorityGroupShares, priorityGroups } from '@/db/schema';
 import { buildPriorityUpdatePlan } from '@/domain/priority/buildPriorityUpdatePlan';
 import { authMiddleware } from '@/server/middleware/auth';
 import { priorityPersistenceSchema } from '@/server/priorities/createPriority';
+import { getEditablePriorityOrThrow } from '@/server/priorities/getEditablePriorityOrThrow';
 
 export const updatePriority = createServerFn({ method: 'POST' })
   .middleware([authMiddleware])
@@ -19,43 +20,11 @@ export const updatePriority = createServerFn({ method: 'POST' })
     const { userId } = context;
 
     await db.transaction(async (tx) => {
-      const [existing] = await tx
-        .select({
-          id: priorities.id,
-          userId: priorities.userId,
-          groupId: priorities.groupId,
-          state: priorities.state,
-          groupOwnerId: priorityGroups.userId,
-          sharePermission: priorityGroupShares.permission,
-        })
-        .from(priorities)
-        .leftJoin(priorityGroups, eq(priorities.groupId, priorityGroups.id))
-        .leftJoin(
-          priorityGroupShares,
-          and(
-            eq(priorityGroupShares.groupId, priorityGroups.id),
-            eq(priorityGroupShares.sharedWithUserId, userId),
-            eq(priorityGroupShares.status, 'accepted'),
-          ),
-        )
-        .where(eq(priorities.id, data.id));
-
-      if (!existing) {
-        throw new Error('Priority not found');
-      }
-
-      if (existing.groupId === null) {
-        if (existing.userId !== userId) {
-          throw new Error('Priority not found');
-        }
-      } else {
-        const canEdit =
-          existing.groupOwnerId === userId ||
-          existing.sharePermission === 'edit';
-        if (!canEdit) {
-          throw new Error('Priority not found');
-        }
-      }
+      const existing = await getEditablePriorityOrThrow({
+        priorityId: data.id,
+        userId,
+        queryDb: tx,
+      });
 
       let nextGroupId: string | null = null;
       let priorityOwnerId = existing.userId;

@@ -27,6 +27,7 @@ type PriorityGroupCardProps = {
   onRename: (groupId: string, name: string) => Promise<void>;
   onLeaveShare: (groupId: string) => Promise<void>;
   onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
   onChangeState: (
     id: string,
     state: PriorityGroup['priorities'][number]['state'],
@@ -39,6 +40,7 @@ export function PriorityGroupCard({
   onRename,
   onLeaveShare,
   onEdit,
+  onDelete,
   onChangeState,
 }: PriorityGroupCardProps) {
   const activePriorities = group.priorities.filter(
@@ -257,6 +259,7 @@ export function PriorityGroupCard({
                               priority={priority}
                               onChangeState={onChangeState}
                               onEdit={onEdit}
+                              onDelete={onDelete}
                               pointerType={pointerType}
                             />
                           ))}
@@ -269,6 +272,7 @@ export function PriorityGroupCard({
                           priority={priority}
                           onChangeState={onChangeState}
                           onEdit={onEdit}
+                          onDelete={onDelete}
                           canEdit={false}
                         />
                       ))
@@ -279,6 +283,7 @@ export function PriorityGroupCard({
                         priority={priority}
                         onChangeState={onChangeState}
                         onEdit={onEdit}
+                        onDelete={onDelete}
                         canEdit={canEdit}
                       />
                     ))}

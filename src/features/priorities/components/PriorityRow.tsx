@@ -31,6 +31,7 @@ type PriorityRowProps = {
   priority: Priority;
   onChangeState: (id: string, state: Priority['state']) => void;
   onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
   containerProps?: ComponentPropsWithRef<'div'>;
   dragHandleProps?: ComponentPropsWithoutRef<'button'>;
   isDragging?: boolean;
@@ -41,6 +42,7 @@ export function PriorityRow({
   priority,
   onChangeState,
   onEdit,
+  onDelete,
   containerProps,
   dragHandleProps,
   isDragging,
@@ -54,6 +56,7 @@ export function PriorityRow({
         priority={priority}
         onChangeState={onChangeState}
         onEdit={onEdit}
+        onDelete={onDelete}
         containerProps={containerProps}
         dragHandleProps={dragHandleProps}
         isDragging={isDragging}
@@ -67,6 +70,7 @@ export function PriorityRow({
       priority={priority}
       onChangeState={onChangeState}
       onEdit={onEdit}
+      onDelete={onDelete}
       containerProps={containerProps}
       canEdit={canEdit}
     />
@@ -75,13 +79,19 @@ export function PriorityRow({
 
 type BaseRowProps = Pick<
   PriorityRowProps,
-  'priority' | 'onChangeState' | 'onEdit' | 'containerProps' | 'canEdit'
+  | 'priority'
+  | 'onChangeState'
+  | 'onEdit'
+  | 'onDelete'
+  | 'containerProps'
+  | 'canEdit'
 >;
 
 function ActivePriorityRow({
   priority,
   onChangeState,
   onEdit,
+  onDelete,
   containerProps,
   dragHandleProps,
   isDragging,
@@ -121,6 +131,7 @@ function ActivePriorityRow({
               priority={priority}
               onChangeState={onChangeState}
               onEdit={onEdit}
+              onDelete={onDelete}
             />
           ) : null}
         </div>
@@ -141,6 +152,7 @@ function CompletedPriorityRow({
   priority,
   onChangeState,
   onEdit,
+  onDelete,
   containerProps,
   canEdit = true,
 }: BaseRowProps) {
@@ -169,6 +181,7 @@ function CompletedPriorityRow({
                 priority={priority}
                 onChangeState={onChangeState}
                 onEdit={onEdit}
+                onDelete={onDelete}
               />
             ) : null}
           </div>
@@ -190,7 +203,8 @@ function RowActionsMenu({
   priority,
   onChangeState,
   onEdit,
-}: Pick<PriorityRowProps, 'priority' | 'onChangeState' | 'onEdit'>) {
+  onDelete,
+}: Pick<PriorityRowProps, 'priority' | 'onChangeState' | 'onEdit' | 'onDelete'>) {
   const isActive = priority.state === 'active';
   const isCompleted = priority.state === 'completed';
 
@@ -248,6 +262,13 @@ function RowActionsMenu({
               </DropdownMenuItem>
             </>
           )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => onDelete(priority.id)}
+          >
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -258,6 +279,7 @@ type SortablePriorityRowProps = {
   priority: Priority;
   onChangeState: (id: string, state: Priority['state']) => void;
   onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
   pointerType: PointerType;
 };
 
@@ -265,6 +287,7 @@ export function SortablePriorityRow({
   priority,
   onChangeState,
   onEdit,
+  onDelete,
   pointerType,
 }: SortablePriorityRowProps) {
   type ComposableHandler<T> = ((event: T) => void) | Function | undefined;
@@ -398,6 +421,7 @@ export function SortablePriorityRow({
         priority={priority}
         onChangeState={onChangeState}
         onEdit={onEdit}
+        onDelete={onDelete}
         isDragging={isDragging}
         canEdit
         containerProps={containerProps}

@@ -6,6 +6,7 @@ import type { PriorityState } from '@/domain/priority/priorityStates';
 import { PriorityGroupCard } from '@/features/priorities/components/PriorityGroupCard';
 import { Route as PrioritiesEditRoute } from '@/routes/priorities/$priorityId';
 import { Route as PrioritiesCreateRoute } from '@/routes/priorities/create';
+import { deletePriority } from '@/server/priorities/deletePriority';
 import { getPendingPriorityGroupInvitations } from '@/server/priorities/getPendingPriorityGroupInvitations';
 import { getPriorities } from '@/server/priorities/getPriorities';
 import { leavePriorityGroup } from '@/server/priorities/leavePriorityGroup';
@@ -35,6 +36,7 @@ function RouteComponent() {
   const reorderPrioritiesFn = useServerFn(reorderPriorities);
   const updatePriorityGroupNameFn = useServerFn(updatePriorityGroupName);
   const updatePriorityStateFn = useServerFn(updatePriorityState);
+  const deletePriorityFn = useServerFn(deletePriority);
   const respondToInvitationFn = useServerFn(respondToPriorityGroupInvitation);
   const leavePriorityGroupFn = useServerFn(leavePriorityGroup);
 
@@ -55,6 +57,16 @@ function RouteComponent() {
       void router.invalidate();
     } catch {
       toast.error('Failed to update priority');
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      await deletePriorityFn({ data: id });
+      toast.success('Priority deleted');
+      void router.invalidate();
+    } catch {
+      toast.error('Failed to delete priority');
     }
   }
 
@@ -187,6 +199,7 @@ function RouteComponent() {
             onLeaveShare={handleLeaveShare}
             onChangeState={handleStateChange}
             onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         ))
       )}

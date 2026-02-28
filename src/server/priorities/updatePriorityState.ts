@@ -2,10 +2,11 @@ import { createServerFn } from '@tanstack/react-start';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { priorities, priorityGroupShares, priorityGroups } from '@/db/schema';
+import { priorities } from '@/db/schema';
 import { buildPriorityStateUpdatePlan } from '@/domain/priority/buildPriorityStateUpdatePlan';
 import { priorityStates } from '@/domain/priority/priorityStates';
 import { authMiddleware } from '@/server/middleware/auth';
+import { getEditablePriorityOrThrow } from '@/server/priorities/getEditablePriorityOrThrow';
 
 const updatePriorityStateSchema = z.object({
   id: z.uuid(),
@@ -19,43 +20,11 @@ export const updatePriorityState = createServerFn({ method: 'POST' })
     const { userId } = context;
 
     await db.transaction(async (tx) => {
-      const [existing] = await tx
-        .select({
-          id: priorities.id,
-          userId: priorities.userId,
-          groupId: priorities.groupId,
-          state: priorities.state,
-          groupOwnerId: priorityGroups.userId,
-          sharePermission: priorityGroupShares.permission,
-        })
-        .from(priorities)
-        .leftJoin(priorityGroups, eq(priorities.groupId, priorityGroups.id))
-        .leftJoin(
-          priorityGroupShares,
-          and(
-            eq(priorityGroupShares.groupId, priorityGroups.id),
-            eq(priorityGroupShares.sharedWithUserId, userId),
-            eq(priorityGroupShares.status, 'accepted'),
-          ),
-        )
-        .where(eq(priorities.id, data.id));
-
-      if (!existing) {
-        throw new Error('Priority not found');
-      }
-
-      if (existing.groupId === null) {
-        if (existing.userId !== userId) {
-          throw new Error('Priority not found');
-        }
-      } else {
-        const canEdit =
-          existing.groupOwnerId === userId ||
-          existing.sharePermission === 'edit';
-        if (!canEdit) {
-          throw new Error('Priority not found');
-        }
-      }
+      const existing = await getEditablePriorityOrThrow({
+        priorityId: data.id,
+        userId,
+        queryDb: tx,
+      });
 
       const priorityOwnerId =
         existing.groupId === null
