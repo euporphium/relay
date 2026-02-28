@@ -49,7 +49,10 @@ export function AttachmentSummary({ attachments }: AttachmentSummaryProps) {
 
             return (
               <div key={link.id} className="flex items-center gap-2">
-                <LinkSimpleIcon size={14} className="shrink-0 text-foreground" />
+                <LinkSimpleIcon
+                  size={14}
+                  className="shrink-0 text-foreground"
+                />
                 <a
                   href={link.url ?? undefined}
                   target="_blank"

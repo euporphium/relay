@@ -5,6 +5,10 @@ import { db } from '@/db';
 import { attachments } from '@/db/schema';
 import { attachmentOwnerTypes } from '@/domain/attachment/attachmentOwnerTypes';
 import { assertAttachmentOwnerAccess } from '@/server/attachments/attachmentOwners';
+import {
+  buildMigratedStorageKey,
+  isStorageKeyForAttachment,
+} from '@/server/attachments/storageKeyPaths';
 import { utApi } from '@/server/attachments/utApi';
 import { authMiddleware } from '@/server/middleware/auth';
 
@@ -13,22 +17,19 @@ const getAttachmentsByOwnerSchema = z.object({
   ownerId: z.uuid(),
 });
 
+type AttachmentRow = typeof attachments.$inferSelect;
+
+type MigratableUploadedAttachment = AttachmentRow & {
+  type: 'image' | 'file';
+  storageKey: string;
+};
+
 function isMigratableUploadedAttachment(
-  attachment: Pick<typeof attachments.$inferSelect, 'type' | 'storageKey'>,
-  userId: string,
-) {
+  attachment: AttachmentRow,
+): attachment is MigratableUploadedAttachment {
   if (attachment.type !== 'image' && attachment.type !== 'file') return false;
   if (!attachment.storageKey) return false;
-  return !attachment.storageKey.includes(`${userId}/`);
-}
-
-function buildUserScopedStorageKey(
-  userId: string,
-  attachmentId: string,
-  key: string,
-) {
-  const fileName = key.split('/').filter(Boolean).pop() ?? 'file';
-  return `${userId}/${attachmentId}-${fileName}`;
+  return !isStorageKeyForAttachment(attachment.storageKey, attachment.id);
 }
 
 function replaceStorageKeyInUrl(
@@ -43,25 +44,20 @@ function replaceStorageKeyInUrl(
 
 async function migrateLegacyAttachmentStorageKeys(
   rows: (typeof attachments.$inferSelect)[],
-  userId: string,
 ) {
   const now = new Date();
   const nextRows = [...rows];
 
   for (const [index, row] of rows.entries()) {
-    if (!isMigratableUploadedAttachment(row, userId)) {
+    if (!isMigratableUploadedAttachment(row)) {
       continue;
     }
 
     const previousStorageKey = row.storageKey;
-    const nextStorageKey = buildUserScopedStorageKey(
-      userId,
-      row.id,
-      previousStorageKey,
-    );
+    const nextStorageKey = buildMigratedStorageKey(row.id, previousStorageKey);
 
     try {
-      // Temporary lazy migration: move legacy file keys into per-user folders.
+      // Lazy migration: normalize legacy keys to attachment-id-based names.
       await utApi.renameFiles({
         fileKey: previousStorageKey,
         newName: nextStorageKey,
@@ -91,7 +87,6 @@ async function migrateLegacyAttachmentStorageKeys(
     } catch (error) {
       console.error('attachment_storage_key_migration_failed', {
         attachmentId: row.id,
-        userId,
         previousStorageKey,
         nextStorageKey,
         error,
@@ -122,5 +117,5 @@ export const getAttachmentsByOwner = createServerFn()
       orderBy: [asc(attachments.position), asc(attachments.createdAt)],
     });
 
-    return migrateLegacyAttachmentStorageKeys(rows, context.userId);
+    return migrateLegacyAttachmentStorageKeys(rows);
   });

@@ -9,6 +9,7 @@ import { auth } from '@/app/auth';
 import { db } from '@/db';
 import { attachments } from '@/db/schema';
 import { assertAttachmentOwnerAccess } from '@/server/attachments/attachmentOwners';
+import { buildAttachmentUploadName } from '@/server/attachments/storageKeyPaths';
 
 const f = createUploadthing();
 
@@ -19,20 +20,6 @@ const uploadInputSchema = z.object({
   title: z.string().trim().max(500).optional(),
   note: z.string().trim().max(2000).optional(),
 });
-
-type UploadInput = {
-  ownerType: 'task' | 'priority';
-  ownerId: string;
-  title?: string;
-  note?: string;
-};
-
-function toUserScopedUploadName(userId: string, fileName: string) {
-  const normalizedFileName =
-    fileName.split(/[\\/]/).filter(Boolean).pop() ?? 'file';
-
-  return `${userId}/${normalizedFileName}`;
-}
 
 function getDisplayFileName(fileName: string) {
   return fileName.split('/').filter(Boolean).pop() ?? fileName;
@@ -55,6 +42,7 @@ async function assertStorageLimit(userId: string, incomingBytes: number) {
 }
 
 async function createUploadedAttachment(params: {
+  attachmentId: string;
   userId: string;
   ownerType: 'task' | 'priority';
   ownerId: string;
@@ -68,10 +56,21 @@ async function createUploadedAttachment(params: {
     ufsUrl?: string;
     appUrl?: string;
   };
+  originalFileName: string;
   title?: string;
   note?: string;
 }) {
-  const { userId, ownerType, ownerId, type, file, title, note } = params;
+  const {
+    attachmentId,
+    userId,
+    ownerType,
+    ownerId,
+    type,
+    file,
+    originalFileName,
+    title,
+    note,
+  } = params;
 
   const [positionRow] = await db
     .select({ max: sql<number>`max(${attachments.position})` })
@@ -87,11 +86,12 @@ async function createUploadedAttachment(params: {
   const now = new Date();
 
   await db.insert(attachments).values({
+    id: attachmentId,
     userId,
     ownerType,
     ownerId,
     type,
-    title: title || getDisplayFileName(file.name),
+    title: title || getDisplayFileName(originalFileName),
     note: note || null,
     position: (positionRow?.max ?? -1) + 1,
     url: file.ufsUrl || file.url || file.appUrl || null,
@@ -129,25 +129,32 @@ export const uploadRouter = {
       const incomingBytes = files.reduce((sum, file) => sum + file.size, 0);
       await assertStorageLimit(userId, incomingBytes);
 
+      const attachmentId = crypto.randomUUID();
+
       return {
         [UTFiles]: files.map((file) => ({
           ...file,
-          name: toUserScopedUploadName(userId, file.name),
+          customId: attachmentId,
+          name: buildAttachmentUploadName(attachmentId, file.name),
         })),
+        attachmentId,
         userId,
         ownerType: input.ownerType,
         ownerId: input.ownerId,
+        originalFileName: files[0]?.name ?? 'file',
         title: input.title,
         note: input.note,
-      } satisfies UploadInput & { userId: string };
+      };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       await createUploadedAttachment({
+        attachmentId: metadata.attachmentId,
         userId: metadata.userId,
         ownerType: metadata.ownerType,
         ownerId: metadata.ownerId,
         type: 'image',
         file,
+        originalFileName: metadata.originalFileName,
         title: metadata.title,
         note: metadata.note,
       });
@@ -178,25 +185,32 @@ export const uploadRouter = {
       const incomingBytes = files.reduce((sum, file) => sum + file.size, 0);
       await assertStorageLimit(userId, incomingBytes);
 
+      const attachmentId = crypto.randomUUID();
+
       return {
         [UTFiles]: files.map((file) => ({
           ...file,
-          name: toUserScopedUploadName(userId, file.name),
+          name: buildAttachmentUploadName(attachmentId, file.name),
+          customId: attachmentId,
         })),
+        attachmentId,
         userId,
         ownerType: input.ownerType,
         ownerId: input.ownerId,
+        originalFileName: files[0]?.name ?? 'file',
         title: input.title,
         note: input.note,
-      } satisfies UploadInput & { userId: string };
+      };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       await createUploadedAttachment({
+        attachmentId: metadata.attachmentId,
         userId: metadata.userId,
         ownerType: metadata.ownerType,
         ownerId: metadata.ownerId,
         type: 'file',
         file,
+        originalFileName: metadata.originalFileName,
         title: metadata.title,
         note: metadata.note,
       });

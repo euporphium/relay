@@ -204,7 +204,10 @@ function RowActionsMenu({
   onChangeState,
   onEdit,
   onDelete,
-}: Pick<PriorityRowProps, 'priority' | 'onChangeState' | 'onEdit' | 'onDelete'>) {
+}: Pick<
+  PriorityRowProps,
+  'priority' | 'onChangeState' | 'onEdit' | 'onDelete'
+>) {
   const isActive = priority.state === 'active';
   const isCompleted = priority.state === 'completed';
 
@@ -290,16 +293,17 @@ export function SortablePriorityRow({
   onDelete,
   pointerType,
 }: SortablePriorityRowProps) {
-  type ComposableHandler<T> = ((event: T) => void) | Function | undefined;
+  type ComposableHandler<T> = ((event: T) => void) | undefined;
 
-  const callHandlers = <T,>(
-    ...handlers: Array<ComposableHandler<T>>
-  ) => {
-    if (handlers.every((handler) => !handler)) return undefined;
+  const callHandlers = <T,>(...handlers: Array<unknown>) => {
+    if (handlers.every((handler) => typeof handler !== 'function')) {
+      return undefined;
+    }
+
     return (event: T) => {
       for (const handler of handlers) {
         if (typeof handler === 'function') {
-          (handler as (event: T) => void)(event);
+          (handler as NonNullable<ComposableHandler<T>>)(event);
         }
       }
     };
