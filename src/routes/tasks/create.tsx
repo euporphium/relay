@@ -11,16 +11,17 @@ import {
 export const Route = createFileRoute('/tasks/create')({
   validateSearch: z.object({
     returnTo: z.string().optional(),
+    name: z.string().optional(),
   }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const navigate = Route.useNavigate();
-  const { returnTo } = Route.useSearch();
+  const { returnTo, name } = Route.useSearch();
 
   const defaultValues: TaskInput = {
-    name: '',
+    name: name ?? '',
     note: '',
     scheduledDate: new Date(),
     preview: undefined,

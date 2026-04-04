@@ -4,10 +4,10 @@ import { format, parseISO } from 'date-fns';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
 import { createCalendarDay } from '@/domain/calendar/calendarDay';
 import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import { DayNavigator } from '@/features/calendar/DayNavigator';
+import { QuickAddTask } from '@/features/tasks/components/QuickAddTask';
 import { TaskList } from '@/features/tasks/components/TaskList';
 import { Route as TasksEditRoute } from '@/routes/tasks/$taskId';
 import { Route as TasksCreateRoute } from '@/routes/tasks/create';
@@ -185,16 +185,20 @@ function RouteComponent() {
         <DayNavigator day={day} />
       </header>
 
-      <Button
-        onClick={() =>
+      <QuickAddTask
+        onCreated={() => {
+          void navigate({ search: { date: format(new Date(), 'yyyy-MM-dd') } });
+        }}
+        onOpenFullForm={(name) =>
           navigate({
             to: TasksCreateRoute.to,
-            search: { returnTo: location.pathname + location.search },
+            search: {
+              name: name || undefined,
+              returnTo: location.pathname + location.search,
+            },
           })
         }
-      >
-        Create New Task
-      </Button>
+      />
 
       <TaskList
         title="Active Tasks"
