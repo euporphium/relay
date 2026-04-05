@@ -68,6 +68,8 @@ function RouteComponent() {
   }
 
   const day = createCalendarDay(targetDate);
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const isPastDate = targetDate < today;
 
   const visibleTasks = tasks.filter((task) => !pendingDeleteIds.has(task.id));
   const activeTasks = visibleTasks.filter((task) => task.status === 'active');
@@ -200,39 +202,43 @@ function RouteComponent() {
         <DayNavigator day={day} />
       </header>
 
-      <QuickAddTask
-        onCreated={() => {
-          void navigate({ search: { date: format(new Date(), 'yyyy-MM-dd') } });
-        }}
-        onOpenFullForm={(name) =>
-          navigate({
-            to: TasksCreateRoute.to,
-            search: {
-              name: name || undefined,
-              returnTo: location.pathname + location.search,
-            },
-          })
-        }
-      />
+      {!isPastDate && (
+        <>
+          <QuickAddTask
+            onCreated={() => {
+              void navigate({ search: { date: format(new Date(), 'yyyy-MM-dd') } });
+            }}
+            onOpenFullForm={(name) =>
+              navigate({
+                to: TasksCreateRoute.to,
+                search: {
+                  name: name || undefined,
+                  returnTo: location.pathname + location.search,
+                },
+              })
+            }
+          />
 
-      <TaskList
-        title="Active Tasks"
-        emptyMessage="No active tasks"
-        tasks={activeTasks}
-        actions={{
-          completeTask: (id) => resolve(id, 'completed'),
-          skipTask: (id) => resolve(id, 'skipped'),
-          editTask,
-          deleteTask,
-        }}
-      />
+          <TaskList
+            title="Active Tasks"
+            emptyMessage="No active tasks"
+            tasks={activeTasks}
+            actions={{
+              completeTask: (id) => resolve(id, 'completed'),
+              skipTask: (id) => resolve(id, 'skipped'),
+              editTask,
+              deleteTask,
+            }}
+          />
 
-      <TaskList
-        title="Upcoming Tasks"
-        emptyMessage="No upcoming tasks"
-        tasks={upcomingTasks}
-        actions={{ editTask, deleteTask }}
-      />
+          <TaskList
+            title="Upcoming Tasks"
+            emptyMessage="No upcoming tasks"
+            tasks={upcomingTasks}
+            actions={{ editTask, deleteTask }}
+          />
+        </>
+      )}
 
       <CompletedTaskList
         tasks={resolvedTasks}
