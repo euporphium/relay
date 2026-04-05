@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { createCalendarDay } from '@/domain/calendar/calendarDay';
+import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import { DayNavigator } from '@/features/calendar/DayNavigator';
 import { CompletedTaskList } from '@/features/tasks/components/CompletedTaskList';
 import { QuickAddTask } from '@/features/tasks/components/QuickAddTask';
@@ -17,7 +18,6 @@ import { getTasksForDate } from '@/server/tasks/getTasksForDate';
 import { resolveTask } from '@/server/tasks/resolveTask';
 import { undoTaskResolution } from '@/server/tasks/undoTaskResolution';
 import { updateTaskResolutionType } from '@/server/tasks/updateTaskResolutionType';
-import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import type { ResolveTaskResult } from '@/shared/types/task';
 
 const DELETE_TOAST_DURATION_MS = 5000;
@@ -81,9 +81,6 @@ function RouteComponent() {
   }
 
   const day = createCalendarDay(targetDate);
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const isPastDate = targetDate < today;
-
   const visibleTasks = tasks.filter((task) => !pendingDeleteIds.has(task.id));
   const activeTasks = visibleTasks.filter((task) => task.status === 'active');
   const upcomingTasks = visibleTasks.filter(
@@ -178,9 +175,15 @@ function RouteComponent() {
     }
   }
 
-  async function changeResolutionType(taskId: string, resolutionId: string, resolutionType: TaskResolutionType) {
+  async function changeResolutionType(
+    taskId: string,
+    resolutionId: string,
+    resolutionType: TaskResolutionType,
+  ) {
     try {
-      await updateTaskResolutionTypeFn({ data: { taskId, resolutionId, resolutionType } });
+      await updateTaskResolutionTypeFn({
+        data: { taskId, resolutionId, resolutionType },
+      });
       void router.invalidate();
     } catch {
       toast.error('Failed to update');
@@ -295,6 +298,7 @@ function SkeletonTaskCard({ rows }: { rows: number }) {
       </div>
       <div className="px-4 space-y-2">
         {Array.from({ length: rows }).map((_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholders have no stable identity
           <div key={i} className="h-16 rounded-lg bg-muted" />
         ))}
       </div>

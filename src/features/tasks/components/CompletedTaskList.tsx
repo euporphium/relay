@@ -1,4 +1,9 @@
-import { CaretDownIcon, CheckCircleIcon, DotsThreeVerticalIcon, SkipForwardIcon } from '@phosphor-icons/react';
+import {
+  CaretDownIcon,
+  CheckCircleIcon,
+  DotsThreeVerticalIcon,
+  SkipForwardIcon,
+} from '@phosphor-icons/react';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -16,12 +21,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
+import { cn } from '@/lib/utils';
 import type { ResolvedTask } from '@/shared/types/task';
 
 export type CompletedTaskActions = {
-  updateResolutionType: (taskId: string, resolutionId: string, type: TaskResolutionType) => void;
+  updateResolutionType: (
+    taskId: string,
+    resolutionId: string,
+    type: TaskResolutionType,
+  ) => void;
   deleteTask: (taskId: string) => void;
 };
 
@@ -64,7 +73,6 @@ export function CompletedTaskList({ tasks, actions }: CompletedTaskListProps) {
           </CardHeader>
         </CollapsibleTrigger>
 
-
         <CollapsibleContent>
           <CardContent className="space-y-2">
             {sortedTasks.map((task) => (
@@ -100,14 +108,18 @@ function CompletedTaskRow({ task, actions }: CompletedTaskRowProps) {
       <DropdownMenuContent align="end">
         {task.resolutionType === 'skipped' ? (
           <DropdownMenuItem
-            onClick={() => updateResolutionType(task.id, task.resolutionId, 'completed')}
+            onClick={() =>
+              updateResolutionType(task.id, task.resolutionId, 'completed')
+            }
           >
             <CheckCircleIcon />
             Mark as completed
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem
-            onClick={() => updateResolutionType(task.id, task.resolutionId, 'skipped')}
+            onClick={() =>
+              updateResolutionType(task.id, task.resolutionId, 'skipped')
+            }
           >
             <SkipForwardIcon />
             Mark as skipped
@@ -132,7 +144,11 @@ function CompletedTaskRow({ task, actions }: CompletedTaskRowProps) {
             {task.name}
           </h3>
           <div className="flex shrink-0 items-center gap-1">
-            <Badge variant={task.resolutionType === 'completed' ? 'success' : 'outline'}>
+            <Badge
+              variant={
+                task.resolutionType === 'completed' ? 'success' : 'outline'
+              }
+            >
               {task.resolutionType === 'completed' ? 'Completed' : 'Skipped'}
             </Badge>
             {actionsMenu}
