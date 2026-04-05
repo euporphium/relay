@@ -1,20 +1,20 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import { format, parseISO } from 'date-fns';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { createCalendarDay } from '@/domain/calendar/calendarDay';
 import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import { DayNavigator } from '@/features/calendar/DayNavigator';
-import { QuickAddTask } from '@/features/tasks/components/QuickAddTask';
 import { CompletedTaskList } from '@/features/tasks/components/CompletedTaskList';
+import { QuickAddTask } from '@/features/tasks/components/QuickAddTask';
 import { TaskList } from '@/features/tasks/components/TaskList';
 import { Route as TasksEditRoute } from '@/routes/tasks/$taskId';
 import { Route as TasksCreateRoute } from '@/routes/tasks/create';
 import { deleteTask as deleteTaskMutation } from '@/server/tasks/deleteTask';
-import { getTasksForDate } from '@/server/tasks/getTasksForDate';
 import { getResolvedTasksForDate } from '@/server/tasks/getResolvedTasksForDate';
+import { getTasksForDate } from '@/server/tasks/getTasksForDate';
 import { resolveTask } from '@/server/tasks/resolveTask';
 import { undoTaskResolution } from '@/server/tasks/undoTaskResolution';
 import type { ResolveTaskResult } from '@/shared/types/task';
@@ -63,8 +63,19 @@ function RouteComponent() {
     new Set(),
   );
 
+  useEffect(() => {
+    // Canonicalize the route on the client using the user's local "today".
+    // This avoids server-side timezone assumptions and keeps the URL explicit.
+    if (!targetDate) {
+      void navigate({
+        search: { date: format(new Date(), 'yyyy-MM-dd') },
+        replace: true,
+      });
+    }
+  }, [targetDate, navigate]);
+
   if (!targetDate) {
-    return <DayNavigator />;
+    return <TaskPageSkeleton />;
   }
 
   const day = createCalendarDay(targetDate);
@@ -206,7 +217,9 @@ function RouteComponent() {
         <>
           <QuickAddTask
             onCreated={() => {
-              void navigate({ search: { date: format(new Date(), 'yyyy-MM-dd') } });
+              void navigate({
+                search: { date: format(new Date(), 'yyyy-MM-dd') },
+              });
             }}
             onOpenFullForm={(name) =>
               navigate({
@@ -244,6 +257,45 @@ function RouteComponent() {
         tasks={resolvedTasks}
         actions={{ undoResolution, deleteTask }}
       />
+    </div>
+  );
+}
+
+function TaskPageSkeleton() {
+  return (
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-4 md:py-12 flex flex-col gap-6 animate-pulse">
+      <header className="flex flex-col items-center gap-3 rounded-xl bg-muted/30 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-md bg-muted" />
+          <div className="h-7 w-40 rounded-md bg-muted" />
+          <div className="h-8 w-8 rounded-md bg-muted" />
+        </div>
+      </header>
+
+      <div className="flex gap-2">
+        <div className="h-9 flex-1 rounded-md bg-muted" />
+        <div className="h-9 w-9 rounded-md bg-muted" />
+        <div className="h-9 w-9 rounded-md bg-muted" />
+      </div>
+
+      <SkeletonTaskCard rows={3} />
+      <SkeletonTaskCard rows={2} />
+    </div>
+  );
+}
+
+function SkeletonTaskCard({ rows }: { rows: number }) {
+  return (
+    <div className="ring-foreground/10 bg-card rounded-2xl py-4 ring-1 flex flex-col gap-4">
+      <div className="px-4 flex items-center justify-between">
+        <div className="h-6 w-32 rounded-md bg-muted" />
+        <div className="h-4 w-4 rounded bg-muted" />
+      </div>
+      <div className="px-4 space-y-2">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="h-16 rounded-lg bg-muted" />
+        ))}
+      </div>
     </div>
   );
 }

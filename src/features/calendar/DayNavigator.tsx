@@ -5,7 +5,7 @@ import {
 } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { addDays, format, isSameDay, subDays } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -16,7 +16,7 @@ import {
 import type { CalendarDay } from '@/domain/calendar/calendarDay';
 
 type DayNavigatorProps = {
-  day?: CalendarDay;
+  day: CalendarDay;
 };
 
 export function DayNavigator({ day }: DayNavigatorProps) {
@@ -24,25 +24,6 @@ export function DayNavigator({ day }: DayNavigatorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const today = new Date();
-  const todayString = format(today, 'yyyy-MM-dd');
-
-  useEffect(() => {
-    // Canonicalize the route on the client using the user's local "today".
-    // This avoids server-side timezone assumptions and keeps the URL explicit.
-    if (!day) {
-      void navigate({
-        search: {
-          date: todayString,
-        },
-        replace: true,
-      });
-    }
-  }, [day, navigate, todayString]);
-
-  if (!day) {
-    return null;
-  }
-
   const isToday = isSameDay(day.date, today);
 
   const navigateToDate = (date: Date) => {
