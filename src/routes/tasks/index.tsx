@@ -215,24 +215,22 @@ function RouteComponent() {
         <DayNavigator day={day} />
       </header>
 
-      {!isPastDate && (
-        <QuickAddTask
-          onCreated={() => {
-            void navigate({
-              search: { date: format(new Date(), 'yyyy-MM-dd') },
-            });
-          }}
-          onOpenFullForm={(name) =>
-            navigate({
-              to: TasksCreateRoute.to,
-              search: {
-                name: name || undefined,
-                returnTo: location.pathname + location.search,
-              },
-            })
-          }
-        />
-      )}
+      <QuickAddTask
+        onCreated={() => {
+          void navigate({
+            search: { date: format(new Date(), 'yyyy-MM-dd') },
+          });
+        }}
+        onOpenFullForm={(name) =>
+          navigate({
+            to: TasksCreateRoute.to,
+            search: {
+              name: name || undefined,
+              returnTo: location.pathname + location.search,
+            },
+          })
+        }
+      />
 
       {activeTasks.length > 0 && (
         <TaskList
