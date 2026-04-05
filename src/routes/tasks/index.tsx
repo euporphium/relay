@@ -8,11 +8,13 @@ import { createCalendarDay } from '@/domain/calendar/calendarDay';
 import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import { DayNavigator } from '@/features/calendar/DayNavigator';
 import { QuickAddTask } from '@/features/tasks/components/QuickAddTask';
+import { CompletedTaskList } from '@/features/tasks/components/CompletedTaskList';
 import { TaskList } from '@/features/tasks/components/TaskList';
 import { Route as TasksEditRoute } from '@/routes/tasks/$taskId';
 import { Route as TasksCreateRoute } from '@/routes/tasks/create';
 import { deleteTask as deleteTaskMutation } from '@/server/tasks/deleteTask';
 import { getTasksForDate } from '@/server/tasks/getTasksForDate';
+import { getResolvedTasksForDate } from '@/server/tasks/getResolvedTasksForDate';
 import { resolveTask } from '@/server/tasks/resolveTask';
 import { undoTaskResolution } from '@/server/tasks/undoTaskResolution';
 import type { ResolveTaskResult } from '@/shared/types/task';
@@ -33,12 +35,16 @@ export const Route = createFileRoute('/tasks/')({
     if (!date) {
       return {
         tasks: [],
+        resolvedTasks: [],
         targetDate: undefined,
       };
     }
 
-    const tasks = await getTasksForDate({ data: date });
-    return { tasks, targetDate: date };
+    const [tasks, resolvedTasks] = await Promise.all([
+      getTasksForDate({ data: date }),
+      getResolvedTasksForDate({ data: date }),
+    ]);
+    return { tasks, resolvedTasks, targetDate: date };
   },
   component: RouteComponent,
 });
@@ -47,7 +53,7 @@ function RouteComponent() {
   const resolveTaskFn = useServerFn(resolveTask);
   const undoTaskResolutionFn = useServerFn(undoTaskResolution);
   const deleteTaskFn = useServerFn(deleteTaskMutation);
-  const { tasks, targetDate } = Route.useLoaderData();
+  const { tasks, resolvedTasks, targetDate } = Route.useLoaderData();
   const navigate = Route.useNavigate();
   const router = useRouter();
   const deleteTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
@@ -157,6 +163,15 @@ function RouteComponent() {
     }
   }
 
+  async function undoResolution(taskId: string, resolutionId: string) {
+    try {
+      await undoTaskResolutionFn({ data: { taskId, resolutionId } });
+      void router.invalidate();
+    } catch {
+      toast.error('Failed to undo');
+    }
+  }
+
   function deleteTask(id: string) {
     if (deleteTimersRef.current.has(id)) {
       return;
@@ -217,6 +232,11 @@ function RouteComponent() {
         emptyMessage="No upcoming tasks"
         tasks={upcomingTasks}
         actions={{ editTask, deleteTask }}
+      />
+
+      <CompletedTaskList
+        tasks={resolvedTasks}
+        actions={{ undoResolution, deleteTask }}
       />
     </div>
   );

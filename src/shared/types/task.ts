@@ -1,5 +1,6 @@
 import type { CalendarIntervalUnit } from '@/domain/calendar/calendarInterval';
 import type { RescheduleAnchor } from '@/domain/task/rescheduleAnchors';
+import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import type { Attachment } from '@/shared/types/attachment';
 
 export type Task = {
@@ -22,6 +23,11 @@ export type Task = {
 export type TaskForDate = Task & {
   previewStartDate: Date;
   status: 'active' | 'upcoming';
+};
+
+export type ResolvedTask = Task & {
+  resolutionId: string;
+  resolutionType: TaskResolutionType;
 };
 
 export type ResolveTaskResult = {
