@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { createCalendarDay } from '@/domain/calendar/calendarDay';
-import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import { DayNavigator } from '@/features/calendar/DayNavigator';
 import { CompletedTaskList } from '@/features/tasks/components/CompletedTaskList';
 import { QuickAddTask } from '@/features/tasks/components/QuickAddTask';
@@ -17,6 +16,8 @@ import { getResolvedTasksForDate } from '@/server/tasks/getResolvedTasksForDate'
 import { getTasksForDate } from '@/server/tasks/getTasksForDate';
 import { resolveTask } from '@/server/tasks/resolveTask';
 import { undoTaskResolution } from '@/server/tasks/undoTaskResolution';
+import { updateTaskResolutionType } from '@/server/tasks/updateTaskResolutionType';
+import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import type { ResolveTaskResult } from '@/shared/types/task';
 
 const DELETE_TOAST_DURATION_MS = 5000;
@@ -52,6 +53,7 @@ export const Route = createFileRoute('/tasks/')({
 function RouteComponent() {
   const resolveTaskFn = useServerFn(resolveTask);
   const undoTaskResolutionFn = useServerFn(undoTaskResolution);
+  const updateTaskResolutionTypeFn = useServerFn(updateTaskResolutionType);
   const deleteTaskFn = useServerFn(deleteTaskMutation);
   const { tasks, resolvedTasks, targetDate } = Route.useLoaderData();
   const navigate = Route.useNavigate();
@@ -176,12 +178,12 @@ function RouteComponent() {
     }
   }
 
-  async function undoResolution(taskId: string, resolutionId: string) {
+  async function changeResolutionType(taskId: string, resolutionId: string, resolutionType: TaskResolutionType) {
     try {
-      await undoTaskResolutionFn({ data: { taskId, resolutionId } });
+      await updateTaskResolutionTypeFn({ data: { taskId, resolutionId, resolutionType } });
       void router.invalidate();
     } catch {
-      toast.error('Failed to undo');
+      toast.error('Failed to update');
     }
   }
 
@@ -214,48 +216,50 @@ function RouteComponent() {
       </header>
 
       {!isPastDate && (
-        <>
-          <QuickAddTask
-            onCreated={() => {
-              void navigate({
-                search: { date: format(new Date(), 'yyyy-MM-dd') },
-              });
-            }}
-            onOpenFullForm={(name) =>
-              navigate({
-                to: TasksCreateRoute.to,
-                search: {
-                  name: name || undefined,
-                  returnTo: location.pathname + location.search,
-                },
-              })
-            }
-          />
+        <QuickAddTask
+          onCreated={() => {
+            void navigate({
+              search: { date: format(new Date(), 'yyyy-MM-dd') },
+            });
+          }}
+          onOpenFullForm={(name) =>
+            navigate({
+              to: TasksCreateRoute.to,
+              search: {
+                name: name || undefined,
+                returnTo: location.pathname + location.search,
+              },
+            })
+          }
+        />
+      )}
 
-          <TaskList
-            title="Active Tasks"
-            emptyMessage="No active tasks"
-            tasks={activeTasks}
-            actions={{
-              completeTask: (id) => resolve(id, 'completed'),
-              skipTask: (id) => resolve(id, 'skipped'),
-              editTask,
-              deleteTask,
-            }}
-          />
+      {activeTasks.length > 0 && (
+        <TaskList
+          title="Active Tasks"
+          emptyMessage="No active tasks"
+          tasks={activeTasks}
+          actions={{
+            completeTask: (id) => resolve(id, 'completed'),
+            skipTask: (id) => resolve(id, 'skipped'),
+            editTask,
+            deleteTask,
+          }}
+        />
+      )}
 
-          <TaskList
-            title="Upcoming Tasks"
-            emptyMessage="No upcoming tasks"
-            tasks={upcomingTasks}
-            actions={{ editTask, deleteTask }}
-          />
-        </>
+      {upcomingTasks.length > 0 && (
+        <TaskList
+          title="Upcoming Tasks"
+          emptyMessage="No upcoming tasks"
+          tasks={upcomingTasks}
+          actions={{ editTask, deleteTask }}
+        />
       )}
 
       <CompletedTaskList
         tasks={resolvedTasks}
-        actions={{ undoResolution, deleteTask }}
+        actions={{ updateResolutionType: changeResolutionType, deleteTask }}
       />
     </div>
   );

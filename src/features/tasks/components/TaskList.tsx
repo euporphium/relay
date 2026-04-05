@@ -31,8 +31,8 @@ export function TaskList({
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <Card size="sm">
-        <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer select-none">
+        <CollapsibleTrigger className="w-full cursor-pointer select-none text-left">
+          <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg md:text-xl font-semibold">{title}</h2>

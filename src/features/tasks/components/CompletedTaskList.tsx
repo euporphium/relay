@@ -1,4 +1,4 @@
-import { ArrowCounterClockwiseIcon, CaretDownIcon, DotsThreeVerticalIcon } from '@phosphor-icons/react';
+import { CaretDownIcon, CheckCircleIcon, DotsThreeVerticalIcon, SkipForwardIcon } from '@phosphor-icons/react';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -17,10 +17,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import type { TaskResolutionType } from '@/domain/task/taskResolutionTypes';
 import type { ResolvedTask } from '@/shared/types/task';
 
 export type CompletedTaskActions = {
-  undoResolution: (taskId: string, resolutionId: string) => void;
+  updateResolutionType: (taskId: string, resolutionId: string, type: TaskResolutionType) => void;
   deleteTask: (taskId: string) => void;
 };
 
@@ -43,8 +44,8 @@ export function CompletedTaskList({ tasks, actions }: CompletedTaskListProps) {
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <Card size="sm">
-        <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer select-none">
+        <CollapsibleTrigger className="w-full cursor-pointer select-none text-left">
+          <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg md:text-xl font-semibold">Completed</h2>
@@ -62,6 +63,7 @@ export function CompletedTaskList({ tasks, actions }: CompletedTaskListProps) {
             </div>
           </CardHeader>
         </CollapsibleTrigger>
+
 
         <CollapsibleContent>
           <CardContent className="space-y-2">
@@ -81,7 +83,7 @@ type CompletedTaskRowProps = {
 };
 
 function CompletedTaskRow({ task, actions }: CompletedTaskRowProps) {
-  const { undoResolution, deleteTask } = actions;
+  const { updateResolutionType, deleteTask } = actions;
 
   const actionsMenu = (
     <DropdownMenu>
@@ -96,12 +98,21 @@ function CompletedTaskRow({ task, actions }: CompletedTaskRowProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => undoResolution(task.id, task.resolutionId)}
-        >
-          <ArrowCounterClockwiseIcon />
-          Undo
-        </DropdownMenuItem>
+        {task.resolutionType === 'skipped' ? (
+          <DropdownMenuItem
+            onClick={() => updateResolutionType(task.id, task.resolutionId, 'completed')}
+          >
+            <CheckCircleIcon />
+            Mark as completed
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem
+            onClick={() => updateResolutionType(task.id, task.resolutionId, 'skipped')}
+          >
+            <SkipForwardIcon />
+            Mark as skipped
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
